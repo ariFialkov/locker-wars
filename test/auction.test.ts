@@ -6,7 +6,7 @@ import { increment } from '../src/core/money';
 
 function run(seed: string, policy: 'incremental' | 'silent' | 'fold', balance = 1e9) {
   const rng = makeRNG(seed);
-  const a = new Auction({ apparentValue: rng.range(200, 8000), bots: rng.shuffle([...BOTS]).slice(0, 4), rng, playerBalance: () => balance });
+  const a = new Auction({ apparentValue: rng.range(4, 160), bots: rng.shuffle([...BOTS]).slice(0, 4), rng, playerBalance: () => balance });
   a.start();
   let t = 0, bids = 0, sold: { who: string | null; amount: number } | null = null;
   let folded = false;

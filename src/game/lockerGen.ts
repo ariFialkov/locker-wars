@@ -8,6 +8,7 @@
  */
 import { makeRNG, type RNG } from '../core/rng';
 import { niceValue } from '../core/money';
+import { g } from '../core/config';
 import { ITEM_BANK, ITEM_BY_ID, FLEX_ITEM_IDS } from './items/bank';
 import { coversFor, type Category, type CoverKind, type ItemDef, type SizeClass } from './items/types';
 import { coverDims, coverGuess } from './items/covers';
@@ -63,7 +64,7 @@ export function generateLocker(sessionSeed: string, number: number): Locker {
     let best: Locker | null = null;
     for (let k = 0; k < 6; k++) {
       const cand = generateLockerRaw(sessionSeed, number, k);
-      if (!best || Math.abs(cand.apparentValue - 1800) < Math.abs(best.apparentValue - 1800)) best = cand;
+      if (!best || Math.abs(cand.apparentValue - g(1800)) < Math.abs(best.apparentValue - g(1800))) best = cand;
     }
     return best!;
   }
@@ -131,9 +132,9 @@ function rollValue(rng: RNG, def: ItemDef): number {
   // Log-uniform inside the range so cheap versions are common and the top end is rare.
   // What you can see from the door is appraised conservatively; the big swings live under the covers.
   const [lo, hiRaw] = def.value;
-  const hi = Math.min(hiRaw, Math.max(lo * 8, def.category === 'vehicles' ? 12000 : 3500));
-  const l = Math.max(lo, 1);
-  const v = Math.exp(rng.range(Math.log(l), Math.log(Math.max(hi, l + 1))));
+  const hi = Math.min(hiRaw, Math.max(lo * 8, g(def.category === 'vehicles' ? 12000 : 3500)));
+  const l = Math.max(lo, g(1));
+  const v = Math.exp(rng.range(Math.log(l), Math.log(Math.max(hi, l * 1.5))));
   return lo === 0 && rng.chance(0.3) ? 0 : v;
 }
 
@@ -259,7 +260,7 @@ export function resolveLocker(locker: Locker, target: number, rng: RNG): Resolut
   const condOf = (v: PlacedItem): Condition => (luxuryReplica.has(v.uid) ? REPLICA : condIdx.get(v.uid)! >= CONDITIONS.length ? (v.def!.luxury ? REPLICA : SCRAP) : CONDITIONS[condIdx.get(v.uid)!]);
   const visibleSum = () => visible.reduce((s, v) => s + niceValue(v.baseValue! * condOf(v).mult), 0);
 
-  const minHidden = hidden.length * 5;
+  const minHidden = hidden.length * g(5);
   let guard = 0;
   while (visibleSum() + minHidden > target && guard++ < 200) {
     // downgrade the currently most valuable visible item one notch
@@ -328,7 +329,7 @@ function chooseHiddenDef(rng: RNG, slot: PlacedItem, amount: number, usedIds: Se
   if (pool.length === 0) pool = ITEM_BANK.filter((d) => d.size === size);
   if (pool.length === 0) pool = ITEM_BANK.filter((d) => d.size === 'S');
   const containing = pool.filter((d) => amount >= d.value[0] * 0.9 && amount <= d.value[1] * 1.1);
-  if (isLast && size === 'S' && (containing.length === 0 || amount > 3000)) {
+  if (isLast && size === 'S' && (containing.length === 0 || amount > g(3000))) {
     // Flexible-value items (cash, coins, jewelry...) can plausibly sit in any small container.
     const flex = FLEX_ITEM_IDS.map((id) => ITEM_BY_ID[id]).filter((d) => kind !== 'safe' || d.valuable);
     return rng.weighted(flex, (d) => (usedIds.has(d.id) ? 0.2 : 1) * (amount >= d.value[0] && amount <= d.value[1] ? 3 : 1));

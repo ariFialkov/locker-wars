@@ -47,7 +47,9 @@ export class GameScene {
     this.flashlight = new THREE.SpotLight(0xfff3d6, 0, 12, 0.42, 0.55, 1.2);
     this.flashlight.castShadow = quality === 'high';
     this.flashlight.shadow.mapSize.set(1024, 1024);
-    this.flashlight.shadow.bias = -0.0005;
+    this.flashlight.shadow.bias = -0.002;
+    this.flashlight.shadow.normalBias = 0.05;
+    this.flashlight.shadow.radius = 3;
     this.flashlight.position.set(0.25, -0.2, 0);
     this.flashlight.target.position.set(0, 0, -5);
     this.camera.add(this.flashlight, this.flashlight.target);
@@ -133,8 +135,9 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
 
   // driveway
   const asphalt = asphaltTexture(); asphalt.repeat.set(20, 20);
-  const ground = mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshStandardMaterial({ map: asphalt, roughness: 0.95 }));
-  ground.rotation.x = -Math.PI / 2; ground.position.set(0, -0.001, 20); ground.castShadow = false;
+  // The driveway starts at the door line so it never sits under (and z-fights with) the unit floor.
+  const ground = mesh(new THREE.PlaneGeometry(120, 80), new THREE.MeshStandardMaterial({ map: asphalt, roughness: 0.95 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, 40); ground.castShadow = false;
   scene.add(ground);
 
   // unit interior
@@ -144,12 +147,12 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
   scene.add(floor);
   const wallTex = corrugatedTexture('#6e6a62', '#4d4a44', 18); wallTex.repeat.set(2, 1);
   const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.75, metalness: 0.25 });
-  const backWall = mesh(new THREE.PlaneGeometry(W, H), wallMat); backWall.position.set(0, H / 2, -D); scene.add(backWall);
+  const backWall = mesh(new THREE.PlaneGeometry(W, H), wallMat); backWall.position.set(0, H / 2, -D + 0.01); scene.add(backWall);
   const sideTex = corrugatedTexture('#6e6a62', '#4d4a44', 18); sideTex.repeat.set(2, 1);
   const sideMat = new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.75, metalness: 0.25 });
   const lw = mesh(new THREE.PlaneGeometry(D, H), sideMat); lw.rotation.y = Math.PI / 2; lw.position.set(-W / 2, H / 2, -D / 2); scene.add(lw);
   const rw = mesh(new THREE.PlaneGeometry(D, H), sideMat); rw.rotation.y = -Math.PI / 2; rw.position.set(W / 2, H / 2, -D / 2); scene.add(rw);
-  const ceil = mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x3a3733, roughness: 0.9 })); ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H, -D / 2); scene.add(ceil);
+  const ceil = mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x3a3733, roughness: 0.9 })); ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H - 0.01, -D / 2); ceil.castShadow = false; scene.add(ceil);
   // dead bulb
   const bulb = mesh(new THREE.SphereGeometry(0.06, 10, 8), mat(0xddd6c0, { rough: 0.3, emissive: 0.05 })); bulb.position.set(0, H - 0.2, -D / 2); scene.add(bulb);
   const cord = mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.15), mat(0x111111)); cord.position.set(0, H - 0.08, -D / 2); scene.add(cord);
@@ -162,7 +165,8 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
   for (const s of [-1, 1]) {
     const blockW = (rowLen - W) / 2;
     const b = mesh(new THREE.BoxGeometry(blockW, H + 0.6, D + wallT), bodyMat);
-    b.position.set(s * (W / 2 + blockW / 2), (H + 0.6) / 2, -D / 2);
+    // pushed 3 cm outward so the block face never coincides with the unit's side-wall planes
+    b.position.set(s * (W / 2 + blockW / 2 + 0.03), (H + 0.6) / 2, -D / 2);
     scene.add(b);
   }
   const roof = mesh(new THREE.BoxGeometry(rowLen, 0.25, D + 1.2), new THREE.MeshStandardMaterial({ color: 0x4a4540, roughness: 0.9 }));

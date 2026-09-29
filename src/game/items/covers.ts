@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import type { RNG } from '../../core/rng';
 import type { CoverKind, SizeClass } from './types';
+import { g } from '../../core/config';
 import { box, cyl, sphere, torus, group, at, rot, mat, mesh, WOODS, vary } from './shapes';
 
 export const COVER_LABEL: Record<CoverKind, string> = {
@@ -14,7 +15,7 @@ export const COVER_ICON: Record<CoverKind, string> = { box: '📦', crate: '🪵
 export function coverGuess(kind: CoverKind, size: SizeClass): number {
   const base: Record<CoverKind, number> = { box: 60, crate: 200, safe: 1200, suitcase: 110, bag: 30, tarp: 240, blanket: 140 };
   const sizeMul: Record<SizeClass, number> = { S: 1, M: 1.8, L: 3, XL: 5 };
-  return base[kind] * (kind === 'tarp' || kind === 'blanket' ? sizeMul[size] : 1);
+  return g(base[kind] * (kind === 'tarp' || kind === 'blanket' ? sizeMul[size] : 1));
 }
 
 export function coverDims(rng: RNG, kind: CoverKind, size: SizeClass): [number, number, number] {

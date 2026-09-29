@@ -1,7 +1,7 @@
 /** All 2D UI: top bar, banners, phase panels, result card, stats, intro. */
 import { fmt, fmtSigned } from '../core/money';
 import { TARGET_RTP, type OutcomeTier } from '../core/economy';
-import { realizedRTP, type Stats, START_BALANCE } from '../core/stats';
+import { realizedRTP, type Stats, START_BALANCE, BAILOUT_AMOUNT } from '../core/stats';
 import { CATEGORY_ICON, CATEGORY_LABEL, type Category } from '../game/items/types';
 import { BOT_BY_ID, type Bot } from '../game/bots';
 import type { Appraisal } from '../game/lockerGen';
@@ -226,7 +226,7 @@ export class HUD {
         <div class="kpi"><span>${better ? 'You missed' : 'You dodged'}</span><b class="${better ? 'bad' : 'good'}">${fmt(Math.abs(missed))}</b></div>
       </div><p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`} You could have taken it for <b>${fmt(r.couldHaveHadFor)}</b>.</p>`;
     }
-    const brokeHtml = r.broke ? `<p><b style="color:var(--bad)">You're out of cash.</b> Big Dave offers a $2,500 "loan" to keep you in the game. No interest. Probably.</p>` : '';
+    const brokeHtml = r.broke ? `<p><b style="color:var(--bad)">You're out of cash.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : '';
     card.innerHTML = `<h1 class="${cls}">${title}</h1>${body}${bestHtml}${quipHtml}${brokeHtml}
       <div class="actions">${r.broke ? '<button class="btn gold bail">Take the loan</button>' : '<button class="btn primary next">Next locker ▶</button>'}<button class="btn ghost stats">Stats</button></div>`;
     card.querySelector('.next')?.addEventListener('click', () => { this.resultModal.classList.remove('show'); this.onNext(); });

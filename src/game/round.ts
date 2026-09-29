@@ -14,13 +14,14 @@ import { HUD } from '../ui/hud';
 import { makeRNG, hashString, type RNG } from '../core/rng';
 import { drawOutcome, payoutTarget, type Outcome } from '../core/economy';
 import { fmt, increment, snap } from '../core/money';
+import { g } from '../core/config';
 import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, linear } from '../core/tween';
 import { loadStats, saveStats, resetStats, pushRound, BAILOUT_AMOUNT, type Stats } from '../core/stats';
 import { generateLocker, resolveLocker, type Locker, type Resolution, type Appraisal } from './lockerGen';
 import { Auction, type AuctionEvent } from './auction';
 import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
-import { voice } from '../audio/voice';
+import { voice, chantify } from '../audio/voice';
 
 type Phase = 'idle' | 'arrive' | 'inspect' | 'auction' | 'sold' | 'count' | 'result';
 const INSPECT_SECONDS = 15;
@@ -216,13 +217,13 @@ export class Game {
         break;
       }
       case 'sold':
-        void this.onSold(e.who, e.amount);
+        void this.onSold(e.who, e.amount, e.text);
         break;
     }
     this.syncAuctionHud();
   }
 
-  private async onSold(who: string | null, amount: number): Promise<void> {
+  private async onSold(who: string | null, amount: number, soldText: string): Promise<void> {
     if (!this.locker || !this.auction || !this.outcome) return;
     this.phase = 'sold';
     this.going = 0;
@@ -235,7 +236,7 @@ export class Game {
     const playerWon = who === 'player';
     const winnerName = playerWon ? 'You' : BOT_BY_ID[who ?? '']?.name ?? 'Nobody';
     this.hud.showBanner('SOLD!', `${fmt(amount)} to ${winnerName}`, null, true);
-    this.bubbleAuctioneer(playerWon ? `SOLD to the new blood for ${fmt(amount)}!` : `SOLD! ${fmt(amount)} to ${BOT_BY_ID[who ?? '']?.short ?? 'the crowd'}!`, 2.5, 'auctioneer');
+    this.bubbleAuctioneer(soldText, 3.0, 'auct', true, false);
     if (playerWon) {
       sfx.crowdReact(1);
       for (const [id] of this.crowd.rivals) { const b = BOT_BY_ID[id]; if (this.roundRng.chance(0.5)) setTimeout(() => this.bubbleBot(b, this.roundRng.pick(b.loseLines), 1.8), 600 + Math.random() * 1200); }
@@ -317,9 +318,9 @@ export class Game {
       running += a.value;
       this.hud.showItemValue(a.value, a.condition.tone === 'bad' && a.value < a.baseValue * 0.5);
       this.labels.pop((o) => o.copy(p).setY(p.y + fp[1] * 0.5 + 0.2), a.value > 0 ? '+' + fmt(a.value) : fmt(0), a.condition.tone === 'bad');
-      if (a.value >= 1000 || a.value > bestSoFar * 2 && a.value > 300) { sfx.kaching(a.value >= 5000); this.fx.coinsAt(p.clone().setY(p.y + fp[1] * 0.5), a.value >= 5000 ? 60 : 25); }
-      else if (a.value >= 150) { sfx.kaching(false); }
-      if (a.revealed && a.value >= 300) this.fx.glitterAt(p.clone().setY(p.y + fp[1] * 0.5), 30);
+      if (a.value >= g(1000) || a.value > bestSoFar * 2 && a.value > g(300)) { sfx.kaching(a.value >= g(5000)); this.fx.coinsAt(p.clone().setY(p.y + fp[1] * 0.5), a.value >= g(5000) ? 60 : 25); }
+      else if (a.value >= g(150)) { sfx.kaching(false); }
+      if (a.revealed && a.value >= g(300)) this.fx.glitterAt(p.clone().setY(p.y + fp[1] * 0.5), 30);
       bestSoFar = Math.max(bestSoFar, a.value);
       this.contents!.highlight(null);
       await wait(Math.max(0.15, dur - pre - tickDur - 0.35));
@@ -376,7 +377,7 @@ export class Game {
       pushRound(s, { ...record, result: bid ? 'lost' : 'passed', winner: who ?? 'nobody', profit: 0, multiplier: value / Math.max(1, amount), tier: null });
     }
     saveStats(s);
-    const minNeeded = 60;
+    const minNeeded = 3;
     const broke = s.balance < minNeeded;
     this.hud.showPanel(null);
     this.hud.showBanner(playerWon ? (value >= amount ? 'Profit' : 'Loss') : 'Next time', '');
@@ -402,10 +403,12 @@ export class Game {
   /*                            helpers                             */
   /* ------------------------------------------------------------ */
 
-  private bubbleAuctioneer(text: string, ttl = 1.8, cls: 'auct' | 'auctioneer' = 'auct', interrupt = true): void {
+  /** cls 'auctioneer' = rapid chant (numbers spoken auction-style); 'auct' = normal announcer voice. */
+  private bubbleAuctioneer(text: string, ttl = 1.8, cls: 'auct' | 'auctioneer' = 'auct', interrupt = true, sayDollars = false): void {
     this.labels.bubble((o) => this.crowd.auctioneer.labelAnchor(o), text, 'auct', ttl, 14);
     this.hud.auctioneer(text);
-    voice.speak(text, { pitch: 1.0, rate: cls === 'auctioneer' ? 1.45 : 1.15, channel: 'auctioneer', interrupt }, 7);
+    const chant = cls === 'auctioneer';
+    voice.speak(chantify(text, sayDollars), { pitch: chant ? 1.08 : 1.0, rate: chant ? 1.85 : 1.25, channel: 'auctioneer', interrupt }, 7);
   }
   private bubbleBot(bot: Bot, text: string, ttl = 1.6, loud = false): void {
     const f = this.crowd.rivals.get(bot.id); if (!f) return;

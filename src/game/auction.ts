@@ -26,6 +26,13 @@ export type AuctionEvent =
   | { type: 'drop'; who: string; line: string }
   | { type: 'sold'; who: Bidder | null; amount: number; text: string };
 
+/** Short description used when the auctioneer hammers a lot down to a rival. */
+export function describeWinner(who: Bidder | null, bots: Bot[]): string {
+  if (who === 'player') return 'the new face up front';
+  const b = bots.find((x) => x.id === who);
+  return b?.look ?? 'the crowd';
+}
+
 export type AuctionPhase = 'idle' | 'opening' | 'live' | 'sold';
 
 export interface AuctionConfig {
@@ -36,12 +43,13 @@ export interface AuctionConfig {
 }
 
 const CHANTS = [
-  "I've got {price}, now {ask}, who'll give me {ask}?",
-  '{ask}! {ask}! Do I hear {ask}?',
-  '{price} bid, looking for {ask}, {ask} anywhere?',
-  "Who'll go {ask}? {ask} now, {ask}!",
-  '{price} going, {ask} to beat it, {ask}?',
-  "Don't be shy, {ask}! {ask} folks!",
+  "I got {price} here, do I hear {ask}? {ask}, {ask}, anybody {ask}?",
+  "{price} bid now {ask}, now {ask}, would ya give me {ask}?",
+  "I'm at {price}, looking for {ask}, {ask} now, {ask} bid, who's got {ask}?",
+  "{price}! {price}! Gimme {ask}, {ask}, {ask} anywhere?",
+  "{price} on the money, {ask} to take it, {ask}, {ask}, who'll go {ask}?",
+  "Come on now, {price} is cheap, {ask}! {ask}! Do I hear {ask}?",
+  "Hey bidder bidder, {ask}! {ask}! I got {price}, want {ask}!",
 ];
 
 export class Auction {
@@ -71,7 +79,7 @@ export class Auction {
     const r = this.rng;
     // Rival ceiling (top bot's limit). Loosely tied to what the locker LOOKS like.
     const f = Math.min(1.9, Math.max(0.18, r.lognormal(0.62, 0.42)));
-    this.reserve = snap(Math.max(30, cfg.apparentValue * f));
+    this.reserve = snap(Math.max(2, cfg.apparentValue * f));
     this.opening = snapDown(Math.max(increment(0), Math.min(this.reserve * 0.5, cfg.apparentValue * r.range(0.15, 0.3))));
     if (this.opening >= this.reserve) this.opening = snapDown(this.reserve * 0.5);
     const leaderIdx = r.weighted(cfg.bots.map((_, i) => i), (i) => 0.4 + cfg.bots[i].aggression);
@@ -90,7 +98,7 @@ export class Auction {
   start(): void {
     this.phase = 'opening';
     this.t = 0; this.sinceBid = 0;
-    this.emit({ type: 'open', ask: this.opening, text: `Alright folks, who'll start me at ${fmt(this.opening)}? ${fmt(this.opening)} to open!` });
+    this.emit({ type: 'open', ask: this.opening, text: `Alright folks, here we go, who'll give me ${fmt(this.opening)} to start? ${fmt(this.opening)}, ${fmt(this.opening)} bid, who's got ${fmt(this.opening)}?` });
     this.scheduleBot(0.9, 2.2);
     this.nextChantAt = 2.4;
   }
@@ -190,13 +198,13 @@ export class Auction {
     }
     if (this.sinceBid >= g1 && this.goingStage === 0) {
       this.goingStage = 1;
-      this.emit({ type: 'going', count: 1, text: `${fmt(this.price)} going once...` });
+      this.emit({ type: 'going', count: 1, text: `${fmt(this.price)} going once, do I hear ${fmt(this.ask)}?` });
     } else if (this.sinceBid >= g2 && this.goingStage === 1) {
       this.goingStage = 2;
-      this.emit({ type: 'going', count: 2, text: `${fmt(this.price)} going twice...` });
+      this.emit({ type: 'going', count: 2, text: `Going twice, one more time, ${fmt(this.ask)} anybody?` });
     } else if (this.sinceBid >= g3 && this.goingStage === 2) {
       this.phase = 'sold';
-      this.emit({ type: 'sold', who: this.high, amount: this.price, text: `SOLD! ${fmt(this.price)}!` });
+      this.emit({ type: 'sold', who: this.high, amount: this.price, text: `SOLD! To ${describeWinner(this.high, this.rivals.map((r) => r.bot))} for ${fmt(this.price)} dollars!` });
     }
   }
 }

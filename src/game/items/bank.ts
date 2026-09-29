@@ -5,6 +5,7 @@
  */
 import * as THREE from 'three';
 import type { RNG } from '../../core/rng';
+import { g } from '../../core/config';
 import type { ItemDef } from './types';
 import { box, cyl, sphere, torus, cone, group, at, rot, mat, mesh, WOODS, METALS, PLASTICS, FABRICS, PASTELS, vary } from './shapes';
 
@@ -632,6 +633,9 @@ export const ITEM_BANK: ItemDef[] = [
     build: (r) => group(box(0.6, 0.4, 0.4, r.pick([0xd94f3d, 0x2f6fd6, 0xeeeeee]), { rough: 0.5 }), at(box(0.6, 0.08, 0.4, 0xeeeeee, { rough: 0.5 }), 0, 0.4, 0), at(cyl(0.12, 0.12, 0.5, 0x3aa655, { rough: 0.8 }), 0.28, 0, 0.1).rotateZ(Math.PI / 2).translateX(-0.2)),
   },
 ];
+
+// Values above are authored in street dollars; convert once to game dollars.
+for (const d of ITEM_BANK) d.value = [g(d.value[0]), g(d.value[1])];
 
 export const ITEM_BY_ID: Record<string, ItemDef> = Object.fromEntries(ITEM_BANK.map((d) => [d.id, d]));
 

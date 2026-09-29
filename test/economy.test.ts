@@ -23,13 +23,13 @@ describe('locker resolution', () => {
     let worst = 0;
     for (let n = 1; n <= 300; n++) {
       const locker = generateLocker('seedA', n);
-      const target = Math.max(50, rng.range(50, 40_000));
+      const target = Math.max(1, rng.range(1, 800));
       const res = resolveLocker(locker, target, rng.fork('r' + n));
       expect(res.appraisals.length).toBe(locker.items.length);
       for (const a of res.appraisals) expect(a.value).toBeGreaterThanOrEqual(0);
-      worst = Math.max(worst, Math.abs(res.error) / target);
+      worst = Math.max(worst, Math.abs(res.error) / Math.max(target, 10));
     }
-    // small rounding noise only; floors on extreme busts are carried as debt by the round loop
+    // rounding noise only (sub-$10 targets are dominated by quarter-dollar rounding, which the round loop carries as debt)
     expect(worst).toBeLessThan(0.6);
   });
 
@@ -55,7 +55,7 @@ describe('full round loop realises the target RTP', () => {
     for (let n = 1; n <= rounds; n++) {
       const locker = generateLocker('seedC', n);
       // wildly varying stake policy: sometimes cheap, sometimes silly
-      const stake = snap(Math.max(50, locker.apparentValue * rng.lognormal(0.7, 0.6)));
+      const stake = snap(Math.max(2, locker.apparentValue * rng.lognormal(0.7, 0.6)));
       const { multiplier } = drawOutcome(rng);
       const { target, debtUsed } = payoutTarget(multiplier, stake, debt);
       debt -= debtUsed;

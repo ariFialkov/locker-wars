@@ -2,8 +2,8 @@
 import type { Category } from '../game/items/types';
 import type { OutcomeTier } from './economy';
 
-export const START_BALANCE = 10_000;
-export const BAILOUT_AMOUNT = 2_500;
+import { START_BALANCE, BAILOUT_AMOUNT } from './config';
+export { START_BALANCE, BAILOUT_AMOUNT };
 const KEY = 'locker-wars:v1';
 
 export interface RoundRecord {

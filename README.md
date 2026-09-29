@@ -4,6 +4,13 @@ A casual 3D storage-auction betting game, installable as a PWA and playable on p
 
 Lockers come up for auction one after another. You get a short look through the open door (no stepping inside), then bid against a rowdy crowd of rival buyers. Win the unit and every item inside is uncovered and appraised while your total ticks up. Pay less than it was worth and you profit.
 
+## Play it
+
+The production build deploys to GitHub Pages on every push to `main` (and the current feature branch):
+**https://arifialkov.github.io/locker-wars/**
+
+On a phone, open that link and use "Add to Home Screen" to install it as an app.
+
 ## Run it
 
 ```bash

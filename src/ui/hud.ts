@@ -1,6 +1,6 @@
 /** All 2D UI: main menu, top bar, banners, phase panels, result card, stats. */
 import { fmt, fmtSigned } from '../core/money';
-import { TARGET_RTP, type OutcomeTier } from '../core/economy';
+import { TARGET_RTP, TIER_LABEL, hitRate, type OutcomeTier } from '../core/economy';
 import { realizedRTP, type Stats, START_BALANCE, BAILOUT_AMOUNT } from '../core/stats';
 import { CATEGORY_ICON, CATEGORY_LABEL, type Category } from '../game/items/types';
 import { BOT_BY_ID, type Bot } from '../game/bots';
@@ -218,12 +218,15 @@ export class HUD {
     const card = this.resultModal.querySelector('.card')!;
     const profit = r.value - r.paid;
     let title = '', cls = '';
-    if (r.kind === 'won') { title = profit >= 0 ? (r.tier === 'jackpot' ? 'Jackpot locker' : r.tier === 'big' ? 'Big score' : 'Profit') : 'That hurt'; cls = profit >= 0 ? (r.tier === 'big' || r.tier === 'jackpot' ? 'gold' : 'good') : 'bad'; }
+    if (r.kind === 'won') {
+      title = profit >= 0 ? (r.tier === 'jackpot' ? 'Jackpot locker' : r.tier === 'huge' ? 'Huge score' : r.tier === 'big' ? 'Big score' : 'Profit') : (r.tier === 'bust' ? 'Junk locker' : 'That hurt');
+      cls = profit >= 0 ? (r.tier === 'big' || r.tier === 'huge' || r.tier === 'jackpot' ? 'gold' : 'good') : 'bad';
+    }
     else { title = r.kind === 'passed' ? 'You passed' : `${r.winnerName} takes it`; }
     const missed = r.value - r.paid;
     const bestHtml = r.best ? `<div class="quote">Best find: <b>${r.best.def.name}</b>${r.best.revealed ? ' (hidden)' : ''} · ${fmt(r.best.value)}</div>` : '';
     const quipHtml = r.quip ? `<div class="quote"><b>${r.quip.who}</b> “${r.quip.text}”</div>` : '';
-    const tierBadge = r.tier ? `<span class="badge ${r.tier}">${r.tier}</span>` : '';
+    const tierBadge = r.tier ? `<span class="badge ${r.tier}">${TIER_LABEL[r.tier]}</span>` : '';
     let body = '';
     if (r.kind === 'won') {
       body = `<div class="kpis">
@@ -321,7 +324,7 @@ export class HUD {
           <div class="bar"><span>Your realised RTP</span><div class="track"><i class="${rtp !== null && rtp >= TARGET_RTP ? 'good' : ''}" style="width:${Math.min(100, (rtp ?? 0) * 100 / 1.2)}%"></i></div><span class="v">${rtp === null ? '—' : (rtp * 100).toFixed(1) + '%'}</span></div>
           <div class="bar"><span>Spent / earned</span><div class="track"></div><span class="v">${fmt(s.totalSpent)} / ${fmt(s.totalEarned)}</span></div>
         </div>
-        <p class="fairness">Every locker you win is an independent bet. The payout multiplier is drawn before the auction starts, from a distribution with a ${Math.round(TARGET_RTP * 100)}% average return. Nothing you see from the door, and nothing the rivals do, changes it.</p>`;
+        <p class="fairness">Every locker you win is an independent bet. The payout multiplier is drawn before the auction starts, from a distribution with a ${Math.round(TARGET_RTP * 100)}% average return: about ${Math.round(hitRate() * 100)}% of won lockers pay out more than you paid, and the busts pay for it. Nothing you see from the door, and nothing the rivals do, changes it.</p>`;
       } else if (tab === 'items') {
         const cats = (Object.entries(s.byCategory) as [Category, { items: number; value: number; lockers: number; replicas: number }][]).sort((a, b) => b[1].value - a[1].value);
         const maxV = Math.max(1, ...cats.map((c) => c[1].value));

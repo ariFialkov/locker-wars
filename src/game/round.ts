@@ -412,7 +412,7 @@ export class Game {
       const rival = this.roundRng.pick(this.bots);
       quip = { who: rival.name, text: profit >= 0 ? this.roundRng.pick(['Beginner\'s luck.', 'Enjoy it while it lasts.', 'Okay, that was a good one.', 'I was gonna bid that.']) : this.roundRng.pick(rival.loseLines) };
       pushRound(s, { ...record, result: 'won', winner: 'player', profit, multiplier: value / amount, tier: this.outcome.tier });
-      if (profit >= 0) sfx.fanfare(this.outcome.tier === 'big' || this.outcome.tier === 'jackpot'); else sfx.sad();
+      if (profit >= 0) sfx.fanfare(this.outcome.tier === 'huge' || this.outcome.tier === 'jackpot'); else sfx.sad();
     } else {
       const bid = this.auction.playerBids > 0;
       if (bid) s.lost++; else s.passed++;

@@ -20,17 +20,26 @@ import type { RNG } from './rng';
 
 export const TARGET_RTP = 0.96;
 
-export type OutcomeTier = 'bust' | 'even' | 'win' | 'big' | 'jackpot';
+export type OutcomeTier = 'bust' | 'loss' | 'win' | 'big' | 'huge' | 'jackpot';
+
+export const TIER_LABEL: Record<OutcomeTier, string> = { bust: 'Bust', loss: 'Loss', win: 'Win', big: 'Big win', huge: 'Huge win', jackpot: 'Jackpot' };
 
 interface Tier { tier: OutcomeTier; p: number; lo: number; hi: number }
 
-// Raw tiers (uniform inside each band). Mean is analytically rescaled to TARGET_RTP.
+/**
+ * Raw tiers (uniform inside each band). Shaped for "win more often than you
+ * lose": ~55% of won lockers return more than the hammer price, mostly by a
+ * little, and the losses that pay for it are deep (a bust locker is nearly
+ * worthless). The mean is analytically rescaled to TARGET_RTP, which only
+ * nudges the bands by a fraction of a percent.
+ */
 const RAW_TIERS: Tier[] = [
-  { tier: 'bust', p: 0.50, lo: 0.08, hi: 0.62 },
-  { tier: 'even', p: 0.28, lo: 0.62, hi: 1.18 },
-  { tier: 'win', p: 0.15, lo: 1.18, hi: 2.30 },
-  { tier: 'big', p: 0.055, lo: 2.30, hi: 5.00 },
-  { tier: 'jackpot', p: 0.015, lo: 5.00, hi: 16.0 },
+  { tier: 'bust', p: 0.20, lo: 0.02, hi: 0.25 },
+  { tier: 'loss', p: 0.25, lo: 0.30, hi: 0.85 },
+  { tier: 'win', p: 0.42, lo: 1.03, hi: 1.25 },
+  { tier: 'big', p: 0.09, lo: 1.30, hi: 1.90 },
+  { tier: 'huge', p: 0.03, lo: 2.00, hi: 4.00 },
+  { tier: 'jackpot', p: 0.01, lo: 4.00, hi: 12.0 },
 ];
 
 const RAW_MEAN = RAW_TIERS.reduce((s, t) => s + t.p * (t.lo + t.hi) / 2, 0);
@@ -57,6 +66,11 @@ export function tierOf(multiplier: number): OutcomeTier {
   return 'jackpot';
 }
 
+/** Probability that a won locker returns more than its price (used by tests and the stats panel). */
+export function hitRate(): number {
+  return TIERS.reduce((s, t) => s + t.p * (t.hi <= 1 ? 0 : t.lo >= 1 ? 1 : (t.hi - 1) / (t.hi - t.lo)), 0);
+}
+
 /** Exact analytic mean of the calibrated distribution (used by tests). */
 export function theoreticalMean(): number {
   return TIERS.reduce((s, t) => s + t.p * (t.lo + t.hi) / 2, 0);
@@ -71,6 +85,6 @@ export function payoutTarget(multiplier: number, stake: number, debt: number): {
   const ideal = multiplier * stake;
   const cap = 0.25 * stake;
   const debtUsed = Math.max(-cap, Math.min(cap, debt));
-  const target = Math.max(0.03 * stake, ideal - debtUsed);
+  const target = Math.max(0.01 * stake, ideal - debtUsed);
   return { target, debtUsed: ideal - target };
 }

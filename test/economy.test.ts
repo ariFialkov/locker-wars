@@ -1,12 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { makeRNG } from '../src/core/rng';
-import { drawOutcome, TARGET_RTP, theoreticalMean, payoutTarget } from '../src/core/economy';
+import { drawOutcome, TARGET_RTP, theoreticalMean, payoutTarget, hitRate, CALIBRATION } from '../src/core/economy';
 import { generateLocker, resolveLocker } from '../src/game/lockerGen';
 import { snap } from '../src/core/money';
 
 describe('outcome distribution', () => {
   it('has an analytic mean equal to the target RTP', () => {
     expect(theoreticalMean()).toBeCloseTo(TARGET_RTP, 10);
+  });
+  it('pays out more than the price on most won lockers, with calibration barely touching the bands', () => {
+    expect(hitRate()).toBeGreaterThan(0.52);
+    expect(hitRate()).toBeLessThan(0.6);
+    expect(Math.abs(CALIBRATION - 1)).toBeLessThan(0.02);
+    const rng = makeRNG('hit-test');
+    let hits = 0; const n = 200_000;
+    for (let i = 0; i < n; i++) if (drawOutcome(rng).multiplier > 1) hits++;
+    expect(hits / n).toBeCloseTo(hitRate(), 2);
   });
   it('samples to the target RTP', () => {
     const rng = makeRNG('rtp-test');

@@ -164,7 +164,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 .kpi b small { font-size: 11px; color: var(--muted); font-weight: 500; }
 .kpi b.good { color: var(--good); } .kpi b.bad { color: var(--bad); } .kpi b.gold { color: var(--gold); }
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; background: var(--surface-3); border: 1px solid var(--line); }
-.badge.bust { color: var(--bad); } .badge.even { color: var(--text); } .badge.win { color: var(--good); } .badge.big { color: var(--gold); } .badge.jackpot { background: linear-gradient(90deg, var(--gold), var(--accent)); color: var(--accent-ink); border-color: transparent; }
+.badge.bust { color: var(--bad); } .badge.loss { color: var(--bad); } .badge.win { color: var(--good); } .badge.big { color: var(--good); } .badge.huge { color: var(--gold); } .badge.jackpot { background: linear-gradient(90deg, var(--gold), var(--accent)); color: var(--accent-ink); border-color: transparent; }
 .quote { color: var(--text); padding: 10px 14px; border-left: 2px solid var(--accent); background: var(--surface-3); border-radius: 0 var(--r-sm) var(--r-sm) 0; margin: 10px 0; font-size: 14px; line-height: 1.4; }
 .quote b { color: var(--gold); font-weight: 600; }
 .tabs { display: flex; gap: 4px; background: var(--surface-3); border: 1px solid var(--line); padding: 4px; border-radius: var(--r-sm); margin-bottom: 10px; }

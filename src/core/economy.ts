@@ -27,19 +27,21 @@ export const TIER_LABEL: Record<OutcomeTier, string> = { bust: 'Bust', loss: 'Lo
 interface Tier { tier: OutcomeTier; p: number; lo: number; hi: number }
 
 /**
- * Raw tiers (uniform inside each band). Shaped for "win more often than you
- * lose": ~55% of won lockers return more than the hammer price, mostly by a
- * little, and the losses that pay for it are deep (a bust locker is nearly
- * worthless). The mean is analytically rescaled to TARGET_RTP, which only
- * nudges the bands by a fraction of a percent.
+ * Raw tiers (uniform inside each band). Shaped so wins are worth the effort:
+ * about half of won lockers pay more than the hammer price, and most of those
+ * pay x1.1 or better, with a fat big-win band (x1.5-x2.2) and rarer huge and
+ * jackpot bands. The price of that at a fixed 96% mean is the losing side:
+ * most losses are busts (near-worthless lockers), with a slim "loss" band in
+ * between. The mean is analytically rescaled to TARGET_RTP, which only nudges
+ * the bands by a few percent.
  */
 const RAW_TIERS: Tier[] = [
-  { tier: 'bust', p: 0.20, lo: 0.02, hi: 0.25 },
-  { tier: 'loss', p: 0.25, lo: 0.30, hi: 0.85 },
-  { tier: 'win', p: 0.42, lo: 1.03, hi: 1.25 },
-  { tier: 'big', p: 0.09, lo: 1.30, hi: 1.90 },
-  { tier: 'huge', p: 0.03, lo: 2.00, hi: 4.00 },
-  { tier: 'jackpot', p: 0.01, lo: 4.00, hi: 12.0 },
+  { tier: 'bust', p: 0.41, lo: 0.02, hi: 0.30 },
+  { tier: 'loss', p: 0.10, lo: 0.30, hi: 0.80 },
+  { tier: 'win', p: 0.27, lo: 1.10, hi: 1.40 },
+  { tier: 'big', p: 0.17, lo: 1.50, hi: 2.20 },
+  { tier: 'huge', p: 0.04, lo: 2.20, hi: 4.50 },
+  { tier: 'jackpot', p: 0.01, lo: 4.50, hi: 12.0 },
 ];
 
 const RAW_MEAN = RAW_TIERS.reduce((s, t) => s + t.p * (t.lo + t.hi) / 2, 0);

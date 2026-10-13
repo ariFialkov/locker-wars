@@ -9,9 +9,9 @@ describe('outcome distribution', () => {
     expect(theoreticalMean()).toBeCloseTo(TARGET_RTP, 10);
   });
   it('pays out more than the price on most won lockers, with calibration barely touching the bands', () => {
-    expect(hitRate()).toBeGreaterThan(0.52);
-    expect(hitRate()).toBeLessThan(0.6);
-    expect(Math.abs(CALIBRATION - 1)).toBeLessThan(0.02);
+    expect(hitRate()).toBeGreaterThan(0.45);
+    expect(hitRate()).toBeLessThan(0.55);
+    expect(Math.abs(CALIBRATION - 1)).toBeLessThan(0.04);
     const rng = makeRNG('hit-test');
     let hits = 0; const n = 200_000;
     for (let i = 0; i < n; i++) if (drawOutcome(rng).multiplier > 1) hits++;

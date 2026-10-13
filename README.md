@@ -38,16 +38,16 @@ Useful URL flags: `?seed=abc` for a reproducible sequence of lockers, `?q=low|hi
 The game is a simulated-multiplayer bet, not a skill game, and the result of every locker you win is fixed before the auction begins.
 
 - **RTP = 96%.** Each won locker is an independent bet: the stake is the hammer price *P*, the payout is the appraised contents *V*. A multiplier *M* is drawn per round from a fixed distribution whose mean is analytically calibrated to exactly `TARGET_RTP` in `src/core/economy.ts`. The tests sample it and check the mean and the hit rate.
-- **Shaped to feel winnable.** The bands are tuned so about 55% of won lockers pay more than their price, mostly by a little (×1.03 to ×1.25), with rarer big, huge and jackpot bands on top. What pays for that is the depth of the losses: a bust (20% of lockers) is nearly worthless, a loss (25%) returns ×0.3 to ×0.85. Same expected return, more frequent wins, harsher busts.
+- **Shaped so wins are worth it.** About half of won lockers pay more than their price, and most of those pay ×1.1 or better, with a fat big-win band and rarer huge and jackpot bands. At a fixed 96% mean that has to be paid for on the losing side, so most losses are busts: near-worthless lockers. Same expected return, meaningful wins, harsh busts.
 
-| Band | Share | Multiplier |
+| Band | Share | Multiplier (after calibration) |
 |---|---|---|
-| Bust | 20% | ×0.02 to ×0.25 |
-| Loss | 25% | ×0.30 to ×0.85 |
-| Win | 42% | ×1.03 to ×1.25 |
-| Big win | 9% | ×1.3 to ×1.9 |
-| Huge win | 3% | ×2 to ×4 |
-| Jackpot | 1% | ×4 to ×12 |
+| Bust | 41% | ×0.02 to ×0.29 |
+| Loss | 10% | ×0.29 to ×0.78 |
+| Win | 27% | ×1.07 to ×1.36 |
+| Big win | 17% | ×1.46 to ×2.14 |
+| Huge win | 4% | ×2.1 to ×4.4 |
+| Jackpot | 1% | ×4.4 to ×11.7 |
 - **Retargeting, not rigged bidding.** After you win, `resolveLocker` sets *V = M × P*: visible items keep their identity and only their *condition* varies, while concealed slots pick an identity whose value range fits the share they must carry (a tarp might hide a jet ski or a broken washer, a safe might hold coins or bonds). That is why the design is robust against selection bias: nothing you can observe from the door (item mix, cover sizes, rival behaviour, price) correlates with *M*, so folding on "expensive-looking" lockers or jump-bidding cannot move your expected return. Driving the price with bots instead (the "bots keep raising until the deterministic minimum" approach) would leak information, because the required price relative to the visible value would then reveal the outcome.
 - **Carry-over correction.** When a target cannot be hit exactly (for example, the visible items already exceed a tiny bust target even at scrap value), the difference is carried as `debt` and absorbed smoothly by the next won lockers, capped at 25% of a stake so no single round feels engineered. The round-loop test drives thousands of lockers with erratic stake sizes and confirms the realised RTP converges on 96%.
 - **Rivals** value the unit from its *apparent* value (visible items plus rough guesses per cover type) times a random factor, so their ceiling looks believable and gives you the feel of finding the price band between "outbid the crowd" and "less than it's worth". They never see *M*.

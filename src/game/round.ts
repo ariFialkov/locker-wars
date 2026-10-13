@@ -23,7 +23,7 @@ import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
 import { voice, chantify } from '../audio/voice';
 
-type Phase = 'idle' | 'arrive' | 'inspect' | 'auction' | 'sold' | 'count' | 'result';
+type Phase = 'menu' | 'idle' | 'arrive' | 'inspect' | 'auction' | 'sold' | 'count' | 'result';
 const INSPECT_SECONDS = 15;
 
 export class Game {
@@ -66,14 +66,14 @@ export class Game {
     this.hud.setBalance(this.stats.balance, false);
     this.wireHud();
     this.rig.home(true);
-    this.rig.lock();
-    this.hud.showIntro(this.stats, BOTS);
+    this.showMenu();
     requestAnimationFrame(this.loop);
   }
 
   private wireHud(): void {
     const H = this.hud;
-    H.onStart = () => { sfx.unlock(); this.startRound(); };
+    H.onStart = () => { sfx.unlock(); void this.leaveMenu(); };
+    H.onMenu = () => { void this.backToMenu(); };
     H.onFlashlight = () => { sfx.click(); this.gs.setFlashlight(!this.gs.flashlightOn); H.setFlashlight(this.gs.flashlightOn); };
     H.onReady = () => { if (this.phase === 'inspect') this.inspectLeft = 0; };
     H.onBid = (amount) => this.playerBid(amount);
@@ -85,6 +85,52 @@ export class Game {
     H.onToggleVoice = () => { this.stats.settings.voice = !this.stats.settings.voice; voice.setEnabled(this.stats.settings.voice && this.stats.settings.sound); saveStats(this.stats); return this.stats.settings.voice; };
     H.onOpenStats = () => this.stats;
     H.onReset = () => { this.stats = resetStats(); this.hud.setBalance(this.stats.balance, false); location.reload(); };
+  }
+
+  /* ------------------------------------------------------------ */
+  /*                             main menu                          */
+  /* ------------------------------------------------------------ */
+
+  /** The menu is the live 3D scene: an open, packed unit with the crowd gathered, camera sweeping slowly. */
+  private showMenu(): void {
+    this.phase = 'menu';
+    this.contents?.dispose();
+    const showcase = generateLocker('showcase-' + this.stats.sessionSeed, 9);
+    this.contents = new LockerContents(this.gs.scene, showcase);
+    this.bots = makeRNG(this.stats.sessionSeed + ':menu').shuffle([...BOTS]).slice(0, 5);
+    this.crowd.setRivals(this.bots);
+    this.labels.clear(); this.nameTags.clear();
+    this.door.resetLock(); this.door.setOpen(1);
+    this.gs.setFlashlight(false); this.hud.setFlashlight(false);
+    this.gs.interiorBulb.intensity = 2.5;
+    this.hud.showPanel(null); this.hud.hideAuctioneer(); this.hud.hideModals();
+    this.rig.showcase();
+    this.hud.showMenu(this.stats, BOTS);
+  }
+
+  private async leaveMenu(): Promise<void> {
+    if (this.phase !== 'menu') return;
+    this.phase = 'idle';
+    this.hud.hideMenu();
+    this.rig.home(); this.rig.lock();
+    this.gs.interiorBulb.intensity = 0;
+    await wait(0.5);
+    await this.door.close();
+    this.contents?.dispose(); this.contents = null;
+    await wait(0.3);
+    void this.startRound();
+  }
+
+  private async backToMenu(): Promise<void> {
+    this.phase = 'idle';
+    cancelAllTweens(); clock.scale = 1;
+    this.gs.interiorBulb.intensity = 0; this.gs.workLight.intensity = 0;
+    this.rig.home(); this.rig.lock();
+    this.hud.showPanel(null); this.hud.hideBanner();
+    await wait(0.3);
+    await this.door.close();
+    await wait(0.2);
+    this.showMenu();
   }
 
   /* ------------------------------------------------------------ */
@@ -438,6 +484,7 @@ export class Game {
     }
     this.rig.update(dt);
     this.focus.set(0, 1.2, this.phase === 'auction' ? 1.2 : -1.0);
+    if (this.phase === 'menu') this.focus.set(0, 1.0, -1.2);
     this.crowd.update(this.t, this.focus);
     this.fx.update(dt);
     this.labels.update(dt);

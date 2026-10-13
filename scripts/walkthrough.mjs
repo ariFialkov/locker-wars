@@ -22,13 +22,13 @@ await page.screenshot({ path: `${OUT}/${tag}-1-cut.png` });
 await page.waitForTimeout(4500);
 await page.screenshot({ path: `${OUT}/${tag}-2-open.png` });
 // inspection: flashlight on, drag camera
-await page.waitForFunction(() => window.game.phase === 'inspect', null, { timeout: 15000 });
+await page.waitForFunction(() => window.game.phase === 'inspect', null, { timeout: 60000 });
 await page.click('.flash-btn');
 await page.mouse.move(550, 340); await page.mouse.down(); await page.mouse.move(330, 320, { steps: 10 }); await page.mouse.up();
 await page.waitForTimeout(1200);
 await page.screenshot({ path: `${OUT}/${tag}-3-inspect.png` });
 await page.click('.ready-btn');
-await page.waitForFunction(() => window.game.phase === 'auction', null, { timeout: 5000 });
+await page.waitForFunction(() => window.game.phase === 'auction', null, { timeout: 20000 });
 await page.waitForTimeout(3000);
 await page.screenshot({ path: `${OUT}/${tag}-4-auction.png` });
 // bid incrementally until we win

@@ -9,7 +9,6 @@ export const COVER_LABEL: Record<CoverKind, string> = {
   box: 'Cardboard box', crate: 'Wooden crate', safe: 'Locked safe', suitcase: 'Suitcase', bag: 'Trash bag', tarp: 'Tarp-covered lump', blanket: 'Blanket-covered shape',
 };
 
-export const COVER_ICON: Record<CoverKind, string> = { box: '📦', crate: '🪵', safe: '🔐', suitcase: '🧳', bag: '🛍️', tarp: '🟦', blanket: '🧶' };
 
 /** Rough guess a buyer would assign to a concealed shape of this kind/size. Drives rival valuations only. */
 export function coverGuess(kind: CoverKind, size: SizeClass): number {

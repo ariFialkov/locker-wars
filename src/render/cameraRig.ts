@@ -1,7 +1,7 @@
 /** Limited-orbit camera with touch/mouse look, pinch zoom and scripted fly-to. */
 import * as THREE from 'three';
 
-type Mode = 'orbit' | 'fly' | 'locked';
+type Mode = 'orbit' | 'fly' | 'locked' | 'showcase';
 
 export class CameraRig {
   mode: Mode = 'locked';
@@ -52,6 +52,8 @@ export class CameraRig {
   setOrbitTarget(v: THREE.Vector3): void { this.target.copy(v); }
 
   flyTo(pos: THREE.Vector3, look: THREE.Vector3): void { this.mode = 'fly'; this.flyPos.copy(pos); this.flyLook.copy(look); }
+  /** Main-menu mode: a slow, wide sweep around the open unit and the crowd. */
+  showcase(): void { this.mode = 'showcase'; }
   lock(): void { this.mode = 'locked'; }
 
   /** Nudge the view slightly toward a world point (used so the camera glances at whoever is yelling). */
@@ -74,12 +76,23 @@ export class CameraRig {
   update(dt: number): void {
     const k = 1 - Math.pow(0.0005, dt); // smooth follow
     let wantPos: THREE.Vector3, wantLook: THREE.Vector3;
-    if (this.mode === 'fly') { wantPos = this.flyPos; wantLook = this.flyLook; }
+    if (this.mode === 'showcase') {
+      const tt = performance.now() / 1000;
+      // Orbit high and wide so the crowd stays between the camera and the door instead of in your face.
+      const yaw = Math.sin(tt * 0.1) * 0.42;
+      const portrait = this.camera.aspect < 1;
+      // Portrait: the lower half is covered by cards, so aim low and close to push the unit into the upper half.
+      const dist = portrait ? 7.4 : 8.2;
+      const look = new THREE.Vector3(0, portrait ? -0.3 : 0.9, portrait ? 0.3 : 0);
+      wantPos = new THREE.Vector3(look.x + Math.sin(yaw) * dist, (portrait ? 2.2 : 2.6) + Math.sin(tt * 0.07) * 0.2, look.z + Math.cos(yaw) * dist);
+      wantLook = look;
+      this.yaw = yaw; this.tYaw = 0; this.tPitch = 0.02; this.tDist = 5.0;
+    } else if (this.mode === 'fly') { wantPos = this.flyPos; wantLook = this.flyLook; }
     else {
       this.yaw += (this.tYaw - this.yaw) * k; this.pitch += (this.tPitch - this.pitch) * k; this.dist += (this.tDist - this.dist) * k;
       wantPos = this.orbitPos(); wantLook = this.target;
     }
-    const kk = this.mode === 'fly' ? 1 - Math.pow(0.02, dt) : k;
+    const kk = this.mode === 'fly' ? 1 - Math.pow(0.02, dt) : this.mode === 'showcase' ? 1 - Math.pow(0.1, dt) : k;
     this.curPos.lerp(wantPos, kk); this.curLook.lerp(wantLook, kk);
     // hand-held wobble
     const t = performance.now() / 1000;

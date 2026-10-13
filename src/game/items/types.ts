@@ -37,9 +37,10 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   art: 'Art & Antiques', sports: 'Sports', toys: 'Toys', clothing: 'Clothing', junk: 'Junk',
 };
 
-export const CATEGORY_ICON: Record<Category, string> = {
-  furniture: '🛋️', appliances: '🧺', electronics: '📺', tools: '🧰', vehicles: '🏍️', instruments: '🎸',
-  collectibles: '🃏', valuables: '💎', art: '🖼️', sports: '🏋️', toys: '🧸', clothing: '👗', junk: '🗑️',
+/** Icon name (see ui/icons.ts) for each category — the names match 1:1. */
+export const CATEGORY_ICON: Record<Category, Category> = {
+  furniture: 'furniture', appliances: 'appliances', electronics: 'electronics', tools: 'tools', vehicles: 'vehicles', instruments: 'instruments',
+  collectibles: 'collectibles', valuables: 'valuables', art: 'art', sports: 'sports', toys: 'toys', clothing: 'clothing', junk: 'junk',
 };
 
 export function coversFor(def: ItemDef): CoverKind[] {

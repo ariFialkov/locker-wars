@@ -199,6 +199,12 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
   const canopyLight = new THREE.PointLight(0xffe9c0, quality === 'high' ? 25 : 18, 9, 2);
   canopyLight.position.set(0, H + 0.4, 0.8);
   scene.add(canopyLight);
+  // dimmer fixtures over the neighbouring units so the row reads as a lit facility, not a void
+  for (const s of [-1, 1]) {
+    const l = new THREE.PointLight(0xffe2b0, 9, 8, 2);
+    l.position.set(s * (W + 0.6) * 1.5, H + 0.4, 0.9);
+    scene.add(l);
+  }
 
   // far background: second row of units across the drive + a few props
   const far = mesh(new THREE.BoxGeometry(rowLen, H + 0.9, 3), bodyMat); far.position.set(0, (H + 0.9) / 2, 15); scene.add(far);
@@ -207,5 +213,5 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
   const dumpster = box(1.8, 1.2, 1.0, 0x2f6b3a, { rough: 0.6, metal: 0.3 }); dumpster.position.set(-6.5, 0.6, 1.2); scene.add(dumpster);
   const lid = box(1.85, 0.08, 1.05, 0x255430, { rough: 0.6, metal: 0.3 }); lid.position.set(-6.5, 1.24, 1.2); scene.add(lid);
   const pallet = box(1.2, 0.12, 1.0, 0x9a7b4f); pallet.position.set(6.2, 0.06, 0.9); scene.add(pallet);
-  const cone1 = mesh(new THREE.ConeGeometry(0.18, 0.5, 12), mat(0xff7b1a, { rough: 0.6 })); cone1.position.set(2.6, 0.25, 3.6); scene.add(cone1);
+  const cone1 = mesh(new THREE.ConeGeometry(0.18, 0.5, 12), mat(0xff7b1a, { rough: 0.6 })); cone1.position.set(5.6, 0.25, 2.2); scene.add(cone1);
 }

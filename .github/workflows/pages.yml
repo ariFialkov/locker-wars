@@ -26,6 +26,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      # The item catalog ships on Pages only, not in the game build.
+      - run: cp docs/item-catalog.html dist/item-catalog.html
       - uses: actions/configure-pages@v5
         with:
           enablement: true

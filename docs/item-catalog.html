@@ -1,3 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Every item that can turn up in a Locker Wars storage unit, with renders, values and rarity.">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+</head>
+<body>
 <title>Locker Wars Item Catalog</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +27,9 @@
   --bg: #141311; --panel: #1d1b19; --plate: #2a2724; --ink: #f0ede8; --muted: #a39d94; --line: #34302c;
   --accent: #ff8a2a; --accent-ink: #1a1208; --warn: #ff7a70; --rar-c: #b7b0a6; --rar-u: #5fd09a; --rar-r: #7fb2ff; --rar-v: #d39bf0; color-scheme: dark }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
 .wrap { max-width: 1240px; margin: 0 auto; }
 header.top { padding-block: 40px 20px; display: grid; gap: 18px; }
 .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
@@ -1801,3 +1812,5 @@ dd { margin: 2px 0 0; font-size: 13px; }
   const h = location.hash.slice(1); const pre = chips.find((c) => c.dataset.f === h); if (pre) pre.click();
 })();
 </script>
+</body>
+</html>

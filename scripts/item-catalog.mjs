@@ -1,13 +1,18 @@
 // Renders every item prefab and concealment, then writes a self-contained
 // catalog page (images embedded) to docs/item-catalog.html.
-// Usage: node scripts/item-catalog.mjs [outFile]
+// Usage: node scripts/item-catalog.mjs [outFile] [--fragment fragmentFile]
+// outFile is a standalone HTML document (served on GitHub Pages); the optional
+// fragment omits <!doctype>/<head> for hosts that wrap the page themselves.
 // Set CHROME_PATH if Playwright's own Chromium is not installed.
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
-const OUT = process.argv[2] ?? 'docs/item-catalog.html';
+const args = process.argv.slice(2);
+const fi = args.indexOf('--fragment');
+const FRAGMENT = fi >= 0 ? args.splice(fi, 2)[1] : null;
+const OUT = args[0] ?? 'docs/item-catalog.html';
 const server = await createServer({ server: { port: 5199, host: '127.0.0.1' }, logLevel: 'error' });
 await server.listen();
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -71,7 +76,9 @@ const html = `<title>Locker Wars Item Catalog</title>
   --bg: #141311; --panel: #1d1b19; --plate: #2a2724; --ink: #f0ede8; --muted: #a39d94; --line: #34302c;
   --accent: #ff8a2a; --accent-ink: #1a1208; --warn: #ff7a70; --rar-c: #b7b0a6; --rar-u: #5fd09a; --rar-r: #7fb2ff; --rar-v: #d39bf0; color-scheme: dark }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
 .wrap { max-width: 1240px; margin: 0 auto; }
 header.top { padding-block: 40px 20px; display: grid; gap: 18px; }
 .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
@@ -160,6 +167,20 @@ dd { margin: 2px 0 0; font-size: 13px; }
   const h = location.hash.slice(1); const pre = chips.find((c) => c.dataset.f === h); if (pre) pre.click();
 })();
 </script>`;
+const doc = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Every item that can turn up in a Locker Wars storage unit, with renders, values and rarity.">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+</head>
+<body>
+${html}
+</body>
+</html>
+`;
 mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, html);
+writeFileSync(OUT, doc);
+if (FRAGMENT) { mkdirSync(dirname(FRAGMENT), { recursive: true }); writeFileSync(FRAGMENT, html); }
 console.log(`wrote ${OUT}: ${meta.items.length} items, ${meta.covers.length} covers, ${(html.length / 1024 / 1024).toFixed(2)} MB`);

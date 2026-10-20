@@ -11,6 +11,8 @@ The production build deploys to GitHub Pages on every push to `main` (and the cu
 
 On a phone, open that link and use "Add to Home Screen" to install it as an app.
 
+The item catalog is published next to it: **https://arifialkov.github.io/locker-wars/item-catalog.html**
+
 ## Run it
 
 ```bash

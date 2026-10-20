@@ -28,6 +28,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // The item catalog is a separate page deployed next to the game; never answer it with the game shell.
+        navigateFallbackDenylist: [/item-catalog\.html$/],
       },
     }),
   ],

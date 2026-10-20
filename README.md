@@ -21,7 +21,10 @@ npm run preview    # serve the production build
 npm test           # vitest: RTP, generator and auction tests
 npm run icons      # regenerate the PWA icons in public/
 node scripts/walkthrough.mjs [--mobile]   # headless Playwright smoke run against `npm run preview`, saves screenshots to ./shots
+npm run catalog    # re-render every item prefab into docs/item-catalog.html
 ```
+
+`docs/item-catalog.html` lists every item in the bank with a render of its prefab, base value, rarity, concealments and a description. Regenerate it after editing the item bank or `tools/catalog/descriptions.ts`.
 
 Useful URL flags: `?seed=abc` for a reproducible sequence of lockers, `?q=low|high` to force the render quality tier.
 

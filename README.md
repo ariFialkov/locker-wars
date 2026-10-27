@@ -69,6 +69,7 @@ The Stats panel shows theoretical vs realised RTP, the outcome history, value by
 ## Project layout
 
 ```
+assets/pack     third-party asset pack (characters, voice lines, item models, cards); see assets/pack/SOURCE.md, not shipped yet
 src/core        rng, money/bid ladder, RTP economy, stats persistence, tween system
 src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, auction FSM, round orchestrator
 src/render      scene & environment, roll-up door + lock cutting, crowd figures, camera rig, particles, locker contents

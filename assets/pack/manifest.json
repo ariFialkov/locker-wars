@@ -1,0 +1,9444 @@
+{
+ "name": "Locker Wars asset pack",
+ "version": "2026-10-26",
+ "units": "Metres, glTF Y-up. Lots and the locker use locker-local coordinates: door plane at z=0, unit extends along -z.",
+ "model_format": "Every model is a .json file {\"b64\": \"...\"} holding a meshopt-compressed GLB (textures 512 px). Decode the base64 to bytes, make a Blob URL, and load it with three.js GLTFLoader plus MeshoptDecoder (three/examples/jsm/libs/meshopt_decoder.module.js).",
+ "values": "Item values are game dollars (min/max appraisal range).",
+ "locker": {
+  "model": "models/locker_unit.json",
+  "interior_m": {
+   "w": 2.6,
+   "d": 4.5,
+   "h": 2.7
+  },
+  "animations": [
+   "cut_lock",
+   "door_open"
+  ]
+ },
+ "characters": [
+  {
+   "id": "auctioneer",
+   "name": "Auctioneer",
+   "role": "auctioneer",
+   "description": "Runs every sale. Loud, quick, folksy showman.",
+   "model": "models/characters/auctioneer.json",
+   "height_m": 1.8,
+   "animations": [
+    "idle",
+    "talk",
+    "gesture",
+    "point",
+    "wave",
+    "bow"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "intro_1",
+     "category": "Intro",
+     "text": "Alright folks, gather 'round! Unit two-fourteen — let's cut that lock and see what we got!",
+     "file": "audio/auctioneer/intro_1.mp3",
+     "seconds": 6.53
+    },
+    {
+     "id": "intro_2",
+     "category": "Intro",
+     "text": "Okay people, next up: unit three-seventy-seven! Somebody hand me those bolt cutters!",
+     "file": "audio/auctioneer/intro_2.mp3",
+     "seconds": 6.41
+    },
+    {
+     "id": "intro_3",
+     "category": "Intro",
+     "text": "Here we go, folks! Pop that lock!",
+     "file": "audio/auctioneer/intro_3.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "look_1",
+     "category": "Peek",
+     "text": "Take a good look, folks — no touching, no stepping inside!",
+     "file": "audio/auctioneer/look_1.mp3",
+     "seconds": 2.93
+    },
+    {
+     "id": "look_2",
+     "category": "Peek",
+     "text": "Five minutes to look... well, five seconds. Make 'em count!",
+     "file": "audio/auctioneer/look_2.mp3",
+     "seconds": 5.09
+    },
+    {
+     "id": "open_1",
+     "category": "Opening",
+     "text": "Who'll start me off? Come on, don't be shy!",
+     "file": "audio/auctioneer/open_1.mp3",
+     "seconds": 2.95
+    },
+    {
+     "id": "open_2",
+     "category": "Opening",
+     "text": "Let's get this party started — who's opening the bidding?",
+     "file": "audio/auctioneer/open_2.mp3",
+     "seconds": 3.77
+    },
+    {
+     "id": "ack_1",
+     "category": "Bid taken",
+     "text": "I got a bid! Do I hear more?",
+     "file": "audio/auctioneer/ack_1.mp3",
+     "seconds": 2.83
+    },
+    {
+     "id": "ack_2",
+     "category": "Bid taken",
+     "text": "Hup! There it is! Who'll go higher?",
+     "file": "audio/auctioneer/ack_2.mp3",
+     "seconds": 2.28
+    },
+    {
+     "id": "ack_3",
+     "category": "Bid taken",
+     "text": "Yep! New bid on the floor!",
+     "file": "audio/auctioneer/ack_3.mp3",
+     "seconds": 1.94
+    },
+    {
+     "id": "ack_4",
+     "category": "Bid taken",
+     "text": "Ohhh, now we're talkin'!",
+     "file": "audio/auctioneer/ack_4.mp3",
+     "seconds": 1.66
+    },
+    {
+     "id": "player_1",
+     "category": "Player bids",
+     "text": "Big spender in the house!",
+     "file": "audio/auctioneer/player_1.mp3",
+     "seconds": 1.75
+    },
+    {
+     "id": "player_2",
+     "category": "Player bids",
+     "text": "New face, big wallet — I like it!",
+     "file": "audio/auctioneer/player_2.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "once",
+     "category": "Hammer",
+     "text": "Going once...",
+     "file": "audio/auctioneer/once.mp3",
+     "seconds": 2.38
+    },
+    {
+     "id": "twice",
+     "category": "Hammer",
+     "text": "Going twice...",
+     "file": "audio/auctioneer/twice.mp3",
+     "seconds": 2.38
+    },
+    {
+     "id": "sold_1",
+     "category": "Hammer",
+     "text": "SOLD! To the lucky bidder!",
+     "file": "audio/auctioneer/sold_1.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "sold_2",
+     "category": "Hammer",
+     "text": "Sold! Congratulations, it's all yours!",
+     "file": "audio/auctioneer/sold_2.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "drop_1",
+     "category": "No bids",
+     "text": "Come on folks, this is a steal! I'll drop it.",
+     "file": "audio/auctioneer/drop_1.mp3",
+     "seconds": 2.93
+    },
+    {
+     "id": "drop_2",
+     "category": "No bids",
+     "text": "Nobody? Really? Somebody's walking away from a fortune here!",
+     "file": "audio/auctioneer/drop_2.mp3",
+     "seconds": 5.78
+    },
+    {
+     "id": "chant",
+     "category": "Chant",
+     "text": "I got a hundred, now one-ten, one-ten, who'll gimme one-ten? One-ten! Now one-twenty, one-twenty... going once... going twice... SOLD!",
+     "file": "audio/auctioneer/chant.mp3",
+     "seconds": 14.02
+    },
+    {
+     "id": "reveal_1",
+     "category": "Reveal",
+     "text": "Let's see what's hiding in there!",
+     "file": "audio/auctioneer/reveal_1.mp3",
+     "seconds": 2.09
+    },
+    {
+     "id": "jackpot",
+     "category": "Reveal",
+     "text": "Oh-ho! Somebody hit the jackpot!",
+     "file": "audio/auctioneer/jackpot.mp3",
+     "seconds": 4.1
+    },
+    {
+     "id": "bust",
+     "category": "Reveal",
+     "text": "Ouch... that one's gonna sting.",
+     "file": "audio/auctioneer/bust.mp3",
+     "seconds": 2.5
+    },
+    {
+     "id": "outro",
+     "category": "Wrap-up",
+     "text": "That's it for this one, folks — on to the next unit!",
+     "file": "audio/auctioneer/outro.mp3",
+     "seconds": 3.7
+    }
+   ]
+  },
+  {
+   "id": "big_dave",
+   "name": "Big Dave",
+   "role": "rival",
+   "description": "Loud, beefy bulldozer of a bidder.",
+   "model": "models/characters/big_dave.json",
+   "height_m": 1.92,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "Outta my way, rookie! Big Dave's buyin' today!",
+     "file": "audio/big_dave/flair.mp3",
+     "seconds": 4.9
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "Yeah! I'm in!",
+     "file": "audio/big_dave/bid_1.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "C'mon, I'll go higher!",
+     "file": "audio/big_dave/bid_2.mp3",
+     "seconds": 4.1
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Big Dave wins again, baby!",
+     "file": "audio/big_dave/win.mp3",
+     "seconds": 4.1
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Nah, I'm out. Too rich for me.",
+     "file": "audio/big_dave/out.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Pfft. That's all junk anyway.",
+     "file": "audio/big_dave/react.mp3",
+     "seconds": 3.31
+    }
+   ]
+  },
+  {
+   "id": "marisol",
+   "name": "Marisol",
+   "role": "rival",
+   "description": "Cool, clipped professional reseller.",
+   "model": "models/characters/marisol.json",
+   "height_m": 1.67,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "Let's keep this professional, shall we?",
+     "file": "audio/marisol/flair.mp3",
+     "seconds": 2.64
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "I'll take that.",
+     "file": "audio/marisol/bid_1.mp3",
+     "seconds": 3.31
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Raise. Final offer.",
+     "file": "audio/marisol/bid_2.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Pleasure doing business.",
+     "file": "audio/marisol/win.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Not worth it. I pass.",
+     "file": "audio/marisol/out.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "I've seen better units in my sleep.",
+     "file": "audio/marisol/react.mp3",
+     "seconds": 2.4
+    }
+   ]
+  },
+  {
+   "id": "professor",
+   "name": "The Professor",
+   "role": "rival",
+   "description": "Fussy, erudite antiques expert.",
+   "model": "models/characters/professor.json",
+   "height_m": 1.73,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "That, my friends, is a genuine antique. I'd stake my tenure on it.",
+     "file": "audio/professor/flair.mp3",
+     "seconds": 3.82
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "If I may — I'll bid.",
+     "file": "audio/professor/bid_1.mp3",
+     "seconds": 4.1
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Ahem. A modest increase.",
+     "file": "audio/professor/bid_2.mp3",
+     "seconds": 3.89
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "A fine acquisition. Most fine.",
+     "file": "audio/professor/win.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Overpriced, I'm afraid.",
+     "file": "audio/professor/out.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Fascinating. Simply fascinating.",
+     "file": "audio/professor/react.mp3",
+     "seconds": 2.88
+    }
+   ]
+  },
+  {
+   "id": "kenny",
+   "name": "Kenny Ka-Ching",
+   "role": "rival",
+   "description": "Hyper young flipper with a catchphrase.",
+   "model": "models/characters/kenny.json",
+   "height_m": 1.78,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "Kenny Ka-Ching, baby! Remember the name!",
+     "file": "audio/kenny/flair.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "KA-CHING! I'm in!",
+     "file": "audio/kenny/bid_1.mp3",
+     "seconds": 5.11
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Easy money, baby!",
+     "file": "audio/kenny/bid_2.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "KA-CHIIING! That's what I'm talkin' about!",
+     "file": "audio/kenny/win.mp3",
+     "seconds": 2.4
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Whatever, it's junk anyway.",
+     "file": "audio/kenny/out.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Yo, did you see that? Did you SEE that?",
+     "file": "audio/kenny/react.mp3",
+     "seconds": 2.3
+    }
+   ]
+  },
+  {
+   "id": "auntie_lou",
+   "name": "Auntie Lou",
+   "role": "rival",
+   "description": "Sweet but sharp elderly bargain hunter.",
+   "model": "models/characters/auntie_lou.json",
+   "height_m": 1.68,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "Don't you sass me, young man. I was buying units before you were born.",
+     "file": "audio/auntie_lou/flair.mp3",
+     "seconds": 5.78
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "Oh, I'll bid, dear.",
+     "file": "audio/auntie_lou/bid_1.mp3",
+     "seconds": 3.31
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "And not a cent more!",
+     "file": "audio/auntie_lou/bid_2.mp3",
+     "seconds": 1.75
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Lovely! Simply lovely!",
+     "file": "audio/auntie_lou/win.mp3",
+     "seconds": 2.38
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Hmph. Highway robbery.",
+     "file": "audio/auntie_lou/out.mp3",
+     "seconds": 2.69
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "In my day, this would've cost a nickel.",
+     "file": "audio/auntie_lou/react.mp3",
+     "seconds": 2.69
+    }
+   ]
+  },
+  {
+   "id": "slick_rick",
+   "name": "Slick Rick",
+   "role": "rival",
+   "description": "Smooth-talking hustler.",
+   "model": "models/characters/slick_rick.json",
+   "height_m": 1.78,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "I never lose, pal. I just win later.",
+     "file": "audio/slick_rick/flair.mp3",
+     "seconds": 5.78
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "Easy money.",
+     "file": "audio/slick_rick/bid_1.mp3",
+     "seconds": 2.38
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Your move, pal.",
+     "file": "audio/slick_rick/bid_2.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Like candy from a baby.",
+     "file": "audio/slick_rick/win.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Keep it, pal. I've got bigger deals waiting.",
+     "file": "audio/slick_rick/out.mp3",
+     "seconds": 5.4
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Heh. Nobody saw that coming... except me.",
+     "file": "audio/slick_rick/react.mp3",
+     "seconds": 6.29
+    }
+   ]
+  },
+  {
+   "id": "rosa",
+   "name": "Rosa",
+   "role": "rival",
+   "description": "Bubbly half of a married duo; talks for Ray.",
+   "model": "models/characters/rosa.json",
+   "height_m": 1.69,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "Ray, honey, back the truck up — we've got a good feeling about this one!",
+     "file": "audio/rosa/flair.mp3",
+     "seconds": 5.59
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "Right, Ray? We're in!",
+     "file": "audio/rosa/bid_1.mp3",
+     "seconds": 3.31
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Ray, back me up! Higher!",
+     "file": "audio/rosa/bid_2.mp3",
+     "seconds": 4.1
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Ray! Ray! We got it!",
+     "file": "audio/rosa/win.mp3",
+     "seconds": 3.7
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Ray says no. Ray always says no.",
+     "file": "audio/rosa/out.mp3",
+     "seconds": 3.05
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Ooh, would you look at that!",
+     "file": "audio/rosa/react.mp3",
+     "seconds": 2.14
+    }
+   ]
+  },
+  {
+   "id": "ray",
+   "name": "Ray",
+   "role": "rival",
+   "description": "Rosa's husband; says as little as possible.",
+   "model": "models/characters/ray.json",
+   "height_m": 1.86,
+   "animations": [
+    "idle",
+    "bid",
+    "cheer",
+    "sulk",
+    "flair"
+   ],
+   "voice": {
+    "name": "Seedance voice",
+    "engine": "ByteDance Seed Audio",
+    "note": "Cloned from two 5-second Seedance clips of the character speaking in character."
+   },
+   "lines": [
+    {
+     "id": "flair",
+     "category": "Taunt",
+     "text": "...Rosa, it's heavy. It's always heavy.",
+     "file": "audio/ray/flair.mp3",
+     "seconds": 4.51
+    },
+    {
+     "id": "bid_1",
+     "category": "Bid",
+     "text": "Uh... yeah. I'll bid.",
+     "file": "audio/ray/bid_1.mp3",
+     "seconds": 3.82
+    },
+    {
+     "id": "bid_2",
+     "category": "Bid",
+     "text": "Sure. Okay. More.",
+     "file": "audio/ray/bid_2.mp3",
+     "seconds": 2.88
+    },
+    {
+     "id": "win",
+     "category": "Win",
+     "text": "Nice.",
+     "file": "audio/ray/win.mp3",
+     "seconds": 1.99
+    },
+    {
+     "id": "out",
+     "category": "Drop out",
+     "text": "Yeah... no.",
+     "file": "audio/ray/out.mp3",
+     "seconds": 2.38
+    },
+    {
+     "id": "react",
+     "category": "Reaction",
+     "text": "Mm-hm.",
+     "file": "audio/ray/react.mp3",
+     "seconds": 2.18
+    }
+   ]
+  }
+ ],
+ "items": [
+  {
+   "id": "wardrobe",
+   "name": "Wardrobe",
+   "category": "Furniture",
+   "rarity": "Uncommon",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.517,
+    "h": 2.0,
+    "d": 0.909
+   },
+   "card": "cards/wardrobe.webp",
+   "value": {
+    "min": 2.0,
+    "max": 18.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/wardrobe.json"
+  },
+  {
+   "id": "dining_table",
+   "name": "Dining table",
+   "category": "Furniture",
+   "rarity": "Uncommon",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.8,
+    "h": 0.885,
+    "d": 1.252
+   },
+   "card": "cards/dining_table.webp",
+   "value": {
+    "min": 2.0,
+    "max": 16.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/dining_table.json"
+  },
+  {
+   "id": "sofa",
+   "name": "Three-seat sofa",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 2.1,
+    "h": 1.201,
+    "d": 1.038
+   },
+   "card": "cards/sofa.webp",
+   "value": {
+    "min": 1.6,
+    "max": 12.0
+   },
+   "flags": "Soft goods; Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/sofa.json"
+  },
+  {
+   "id": "bed",
+   "name": "Bed frame & mattress",
+   "category": "Furniture",
+   "rarity": "Uncommon",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.821,
+    "h": 1.523,
+    "d": 2.1
+   },
+   "card": "cards/bed.webp",
+   "value": {
+    "min": 1.6,
+    "max": 12.0
+   },
+   "flags": "Soft goods; Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/bed.json"
+  },
+  {
+   "id": "dresser",
+   "name": "Chest of drawers",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.829,
+    "h": 1.1,
+    "d": 0.668
+   },
+   "card": "cards/dresser.webp",
+   "value": {
+    "min": 1.2,
+    "max": 10.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/dresser.json"
+  },
+  {
+   "id": "desk",
+   "name": "Writing desk",
+   "category": "Furniture",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.3,
+    "h": 0.888,
+    "d": 0.787
+   },
+   "card": "cards/desk.webp",
+   "value": {
+    "min": 1.0,
+    "max": 10.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/desk.json"
+  },
+  {
+   "id": "rocking_chair",
+   "name": "Rocking chair",
+   "category": "Furniture",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.618,
+    "h": 1.1,
+    "d": 0.776
+   },
+   "card": "cards/rocking_chair.webp",
+   "value": {
+    "min": 1.2,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/rocking_chair.json"
+  },
+  {
+   "id": "office_chair",
+   "name": "Office chair",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.793,
+    "h": 1.15,
+    "d": 0.768
+   },
+   "card": "cards/office_chair.webp",
+   "value": {
+    "min": 0.6,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/office_chair.json"
+  },
+  {
+   "id": "armchair",
+   "name": "Armchair",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.836,
+    "h": 1.0,
+    "d": 0.727
+   },
+   "card": "cards/armchair.webp",
+   "value": {
+    "min": 0.8,
+    "max": 7.0
+   },
+   "flags": "Soft goods",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/armchair.json"
+  },
+  {
+   "id": "coffee_table",
+   "name": "Coffee table",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.1,
+    "h": 0.529,
+    "d": 0.804
+   },
+   "card": "cards/coffee_table.webp",
+   "value": {
+    "min": 0.6,
+    "max": 6.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/coffee_table.json"
+  },
+  {
+   "id": "chairs",
+   "name": "Set of dining chairs",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.748,
+    "h": 1.0,
+    "d": 0.442
+   },
+   "card": "cards/chairs.webp",
+   "value": {
+    "min": 0.8,
+    "max": 5.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/chairs.json"
+  },
+  {
+   "id": "bookshelf",
+   "name": "Bookshelf",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.165,
+    "h": 1.8,
+    "d": 0.484
+   },
+   "card": "cards/bookshelf.webp",
+   "value": {
+    "min": 0.6,
+    "max": 4.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/bookshelf.json"
+  },
+  {
+   "id": "lamp",
+   "name": "Floor lamp",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.718,
+    "h": 1.6,
+    "d": 0.72
+   },
+   "card": "cards/lamp.webp",
+   "value": {
+    "min": 0.3,
+    "max": 4.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/lamp.json"
+  },
+  {
+   "id": "nightstand",
+   "name": "Nightstand",
+   "category": "Furniture",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.545,
+    "h": 0.6,
+    "d": 0.475
+   },
+   "card": "cards/nightstand.webp",
+   "value": {
+    "min": 0.4,
+    "max": 3.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/nightstand.json"
+  },
+  {
+   "id": "espresso",
+   "name": "Espresso machine",
+   "category": "Appliances",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.337,
+    "h": 0.4,
+    "d": 0.386
+   },
+   "card": "cards/espresso.webp",
+   "value": {
+    "min": 2.0,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/espresso.json"
+  },
+  {
+   "id": "fridge",
+   "name": "Refrigerator",
+   "category": "Appliances",
+   "rarity": "Uncommon",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 0.96,
+    "h": 1.8,
+    "d": 0.904
+   },
+   "card": "cards/fridge.webp",
+   "value": {
+    "min": 3.0,
+    "max": 18.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/fridge.json"
+  },
+  {
+   "id": "sewing_machine",
+   "name": "Sewing machine",
+   "category": "Appliances",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.45,
+    "h": 0.314,
+    "d": 0.213
+   },
+   "card": "cards/sewing_machine.webp",
+   "value": {
+    "min": 0.8,
+    "max": 16.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/sewing_machine.json"
+  },
+  {
+   "id": "washer",
+   "name": "Washing machine",
+   "category": "Appliances",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.661,
+    "h": 0.9,
+    "d": 0.633
+   },
+   "card": "cards/washer.webp",
+   "value": {
+    "min": 2.4,
+    "max": 14.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/washer.json"
+  },
+  {
+   "id": "mixer",
+   "name": "Stand mixer",
+   "category": "Appliances",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.23,
+    "h": 0.386,
+    "d": 0.4
+   },
+   "card": "cards/mixer.webp",
+   "value": {
+    "min": 1.6,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/mixer.json"
+  },
+  {
+   "id": "ac_unit",
+   "name": "Window AC unit",
+   "category": "Appliances",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.65,
+    "h": 0.498,
+    "d": 0.57
+   },
+   "card": "cards/ac_unit.webp",
+   "value": {
+    "min": 1.6,
+    "max": 8.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket",
+    "cover_box"
+   ],
+   "model": "models/items/ac_unit.json"
+  },
+  {
+   "id": "vacuum",
+   "name": "Vacuum cleaner",
+   "category": "Appliances",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.842,
+    "h": 1.1,
+    "d": 0.46
+   },
+   "card": "cards/vacuum.webp",
+   "value": {
+    "min": 0.6,
+    "max": 6.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/vacuum.json"
+  },
+  {
+   "id": "mini_fridge",
+   "name": "Mini fridge",
+   "category": "Appliances",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.608,
+    "h": 0.85,
+    "d": 0.718
+   },
+   "card": "cards/mini_fridge.webp",
+   "value": {
+    "min": 0.6,
+    "max": 3.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/mini_fridge.json"
+  },
+  {
+   "id": "microwave",
+   "name": "Microwave",
+   "category": "Appliances",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.5,
+    "h": 0.368,
+    "d": 0.3
+   },
+   "card": "cards/microwave.webp",
+   "value": {
+    "min": 0.4,
+    "max": 2.4
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/microwave.json"
+  },
+  {
+   "id": "arcade",
+   "name": "Arcade cabinet",
+   "category": "Electronics",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.911,
+    "h": 1.8,
+    "d": 1.071
+   },
+   "card": "cards/arcade.webp",
+   "value": {
+    "min": 16.0,
+    "max": 100.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/arcade.json"
+  },
+  {
+   "id": "camera",
+   "name": "Camera bag & lenses",
+   "category": "Electronics",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.45,
+    "h": 0.38,
+    "d": 0.325
+   },
+   "card": "cards/camera.webp",
+   "value": {
+    "min": 2.0,
+    "max": 60.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/camera.json"
+  },
+  {
+   "id": "pc_tower",
+   "name": "Gaming PC",
+   "category": "Electronics",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.436,
+    "h": 0.5,
+    "d": 0.265
+   },
+   "card": "cards/pc_tower.webp",
+   "value": {
+    "min": 3.0,
+    "max": 50.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/pc_tower.json"
+  },
+  {
+   "id": "drone",
+   "name": "Camera drone",
+   "category": "Electronics",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.444,
+    "h": 0.281,
+    "d": 0.45
+   },
+   "card": "cards/drone.webp",
+   "value": {
+    "min": 3.0,
+    "max": 36.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/drone.json"
+  },
+  {
+   "id": "laptop",
+   "name": "Laptop",
+   "category": "Electronics",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.353,
+    "h": 0.316,
+    "d": 0.38
+   },
+   "card": "cards/laptop.webp",
+   "value": {
+    "min": 2.0,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/laptop.json"
+  },
+  {
+   "id": "flat_tv",
+   "name": "Flat-screen TV",
+   "category": "Electronics",
+   "rarity": "Common",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.3,
+    "h": 0.878,
+    "d": 0.229
+   },
+   "card": "cards/flat_tv.webp",
+   "value": {
+    "min": 2.0,
+    "max": 24.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/flat_tv.json"
+  },
+  {
+   "id": "speakers",
+   "name": "Hi-fi speaker pair",
+   "category": "Electronics",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.856,
+    "h": 1.0,
+    "d": 0.375
+   },
+   "card": "cards/speakers.webp",
+   "value": {
+    "min": 2.0,
+    "max": 24.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/speakers.json"
+  },
+  {
+   "id": "turntable",
+   "name": "Turntable",
+   "category": "Electronics",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.45,
+    "h": 0.186,
+    "d": 0.395
+   },
+   "card": "cards/turntable.webp",
+   "value": {
+    "min": 1.2,
+    "max": 16.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/turntable.json"
+  },
+  {
+   "id": "vr_kit",
+   "name": "VR headset kit",
+   "category": "Electronics",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.4,
+    "h": 0.332,
+    "d": 0.32
+   },
+   "card": "cards/vr_kit.webp",
+   "value": {
+    "min": 1.6,
+    "max": 14.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/vr_kit.json"
+  },
+  {
+   "id": "console",
+   "name": "Game console & controllers",
+   "category": "Electronics",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.372,
+    "h": 0.154,
+    "d": 0.4
+   },
+   "card": "cards/console.webp",
+   "value": {
+    "min": 1.6,
+    "max": 9.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/console.json"
+  },
+  {
+   "id": "crt_tv",
+   "name": "Old tube TV",
+   "category": "Electronics",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.519,
+    "h": 0.6,
+    "d": 0.321
+   },
+   "card": "cards/crt_tv.webp",
+   "value": {
+    "min": 0.1,
+    "max": 1.2
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket",
+    "cover_box"
+   ],
+   "model": "models/items/crt_tv.json"
+  },
+  {
+   "id": "generator",
+   "name": "Portable generator",
+   "category": "Tools",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.7,
+    "h": 0.679,
+    "d": 0.526
+   },
+   "card": "cards/generator.webp",
+   "value": {
+    "min": 4.0,
+    "max": 30.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/generator.json"
+  },
+  {
+   "id": "welder",
+   "name": "Welding kit",
+   "category": "Tools",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.368,
+    "h": 0.6,
+    "d": 0.51
+   },
+   "card": "cards/welder.webp",
+   "value": {
+    "min": 4.0,
+    "max": 24.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket",
+    "cover_box"
+   ],
+   "model": "models/items/welder.json"
+  },
+  {
+   "id": "table_saw",
+   "name": "Table saw",
+   "category": "Tools",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.923,
+    "h": 1.0,
+    "d": 0.909
+   },
+   "card": "cards/table_saw.webp",
+   "value": {
+    "min": 3.0,
+    "max": 18.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/table_saw.json"
+  },
+  {
+   "id": "mower",
+   "name": "Lawn mower",
+   "category": "Tools",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.5,
+    "h": 1.36,
+    "d": 0.734
+   },
+   "card": "cards/mower.webp",
+   "value": {
+    "min": 1.6,
+    "max": 12.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/mower.json"
+  },
+  {
+   "id": "compressor",
+   "name": "Air compressor",
+   "category": "Tools",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.6,
+    "h": 0.574,
+    "d": 0.434
+   },
+   "card": "cards/compressor.webp",
+   "value": {
+    "min": 1.6,
+    "max": 10.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/compressor.json"
+  },
+  {
+   "id": "toolbox",
+   "name": "Steel toolbox",
+   "category": "Tools",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.491,
+    "h": 0.424,
+    "d": 0.55
+   },
+   "card": "cards/toolbox.webp",
+   "value": {
+    "min": 0.8,
+    "max": 8.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/toolbox.json"
+  },
+  {
+   "id": "pressure_washer",
+   "name": "Pressure washer",
+   "category": "Tools",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.601,
+    "h": 0.828,
+    "d": 0.9
+   },
+   "card": "cards/pressure_washer.webp",
+   "value": {
+    "min": 1.2,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/pressure_washer.json"
+  },
+  {
+   "id": "drill_set",
+   "name": "Cordless power-tool set",
+   "category": "Tools",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.485,
+    "h": 0.5,
+    "d": 0.468
+   },
+   "card": "cards/drill_set.webp",
+   "value": {
+    "min": 1.0,
+    "max": 6.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/drill_set.json"
+  },
+  {
+   "id": "ladder",
+   "name": "Aluminium ladder",
+   "category": "Tools",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 2.0,
+    "h": 0.789,
+    "d": 1.365
+   },
+   "card": "cards/ladder.webp",
+   "value": {
+    "min": 0.8,
+    "max": 5.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/ladder.json"
+  },
+  {
+   "id": "motorcycle",
+   "name": "Motorcycle",
+   "category": "Vehicles",
+   "rarity": "Very rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 2.1,
+    "h": 1.192,
+    "d": 0.967
+   },
+   "card": "cards/motorcycle.webp",
+   "value": {
+    "min": 30.0,
+    "max": 240.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/motorcycle.json"
+  },
+  {
+   "id": "jetski",
+   "name": "Jet ski on trailer",
+   "category": "Vehicles",
+   "rarity": "Very rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 3.0,
+    "h": 2.073,
+    "d": 1.608
+   },
+   "card": "cards/jetski.webp",
+   "value": {
+    "min": 40.0,
+    "max": 180.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/jetski.json"
+  },
+  {
+   "id": "atv",
+   "name": "Quad bike",
+   "category": "Vehicles",
+   "rarity": "Very rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.9,
+    "h": 1.394,
+    "d": 1.278
+   },
+   "card": "cards/atv.webp",
+   "value": {
+    "min": 30.0,
+    "max": 160.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/atv.json"
+  },
+  {
+   "id": "gokart",
+   "name": "Go-kart",
+   "category": "Vehicles",
+   "rarity": "Very rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.6,
+    "h": 0.662,
+    "d": 0.998
+   },
+   "card": "cards/gokart.webp",
+   "value": {
+    "min": 8.0,
+    "max": 60.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/gokart.json"
+  },
+  {
+   "id": "bicycle",
+   "name": "Bicycle",
+   "category": "Vehicles",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.75,
+    "h": 1.085,
+    "d": 0.547
+   },
+   "card": "cards/bicycle.webp",
+   "value": {
+    "min": 1.2,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/bicycle.json"
+  },
+  {
+   "id": "scooter",
+   "name": "Electric scooter",
+   "category": "Vehicles",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.1,
+    "h": 1.024,
+    "d": 0.767
+   },
+   "card": "cards/scooter.webp",
+   "value": {
+    "min": 4.0,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/scooter.json"
+  },
+  {
+   "id": "kayak",
+   "name": "Kayak & paddle",
+   "category": "Vehicles",
+   "rarity": "Rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 2.6,
+    "h": 0.6,
+    "d": 2.445
+   },
+   "card": "cards/kayak.webp",
+   "value": {
+    "min": 3.0,
+    "max": 24.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/kayak.json"
+  },
+  {
+   "id": "violin",
+   "name": "Violin in case",
+   "category": "Instruments",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.8,
+    "h": 0.359,
+    "d": 0.53
+   },
+   "card": "cards/violin.webp",
+   "value": {
+    "min": 1.6,
+    "max": 160.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/violin.json"
+  },
+  {
+   "id": "upright_piano",
+   "name": "Upright piano",
+   "category": "Instruments",
+   "rarity": "Very rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.5,
+    "h": 1.449,
+    "d": 0.867
+   },
+   "card": "cards/upright_piano.webp",
+   "value": {
+    "min": 4.0,
+    "max": 80.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/upright_piano.json"
+  },
+  {
+   "id": "saxophone",
+   "name": "Saxophone",
+   "category": "Instruments",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.496,
+    "h": 0.8,
+    "d": 0.23
+   },
+   "card": "cards/saxophone.webp",
+   "value": {
+    "min": 3.0,
+    "max": 80.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/saxophone.json"
+  },
+  {
+   "id": "electric_guitar",
+   "name": "Electric guitar & amp",
+   "category": "Instruments",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.64,
+    "h": 1.0,
+    "d": 0.579
+   },
+   "card": "cards/electric_guitar.webp",
+   "value": {
+    "min": 3.0,
+    "max": 70.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/electric_guitar.json"
+  },
+  {
+   "id": "drums",
+   "name": "Drum kit",
+   "category": "Instruments",
+   "rarity": "Rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.5,
+    "h": 1.121,
+    "d": 0.829
+   },
+   "card": "cards/drums.webp",
+   "value": {
+    "min": 5.0,
+    "max": 50.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/drums.json"
+  },
+  {
+   "id": "acoustic",
+   "name": "Acoustic guitar",
+   "category": "Instruments",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.434,
+    "h": 1.0,
+    "d": 0.175
+   },
+   "card": "cards/acoustic.webp",
+   "value": {
+    "min": 1.2,
+    "max": 40.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/acoustic.json"
+  },
+  {
+   "id": "keyboard",
+   "name": "Digital piano",
+   "category": "Instruments",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.323,
+    "h": 1.35,
+    "d": 0.699
+   },
+   "card": "cards/keyboard.webp",
+   "value": {
+    "min": 2.0,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/keyboard.json"
+  },
+  {
+   "id": "trumpet",
+   "name": "Trumpet in case",
+   "category": "Instruments",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.6,
+    "h": 0.52,
+    "d": 0.512
+   },
+   "card": "cards/trumpet.webp",
+   "value": {
+    "min": 2.0,
+    "max": 30.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/trumpet.json"
+  },
+  {
+   "id": "coins",
+   "name": "Coin collection",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.35,
+    "h": 0.331,
+    "d": 0.314
+   },
+   "card": "cards/coins.webp",
+   "value": {
+    "min": 1.0,
+    "max": 400.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/coins.json"
+  },
+  {
+   "id": "cards",
+   "name": "Sports card box",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.192,
+    "h": 0.282,
+    "d": 0.35
+   },
+   "card": "cards/cards.webp",
+   "value": {
+    "min": 0.4,
+    "max": 300.0
+   },
+   "flags": "Can be replica; Fits in safe; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/cards.json"
+  },
+  {
+   "id": "comics",
+   "name": "Long box of comics",
+   "category": "Collectibles",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.7,
+    "h": 0.344,
+    "d": 0.29
+   },
+   "card": "cards/comics.webp",
+   "value": {
+    "min": 0.2,
+    "max": 160.0
+   },
+   "flags": "Can be replica; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/comics.json"
+  },
+  {
+   "id": "signed_ball",
+   "name": "Signed ball in case",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.145,
+    "h": 0.15,
+    "d": 0.145
+   },
+   "card": "cards/signed_ball.webp",
+   "value": {
+    "min": 1.0,
+    "max": 120.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/signed_ball.json"
+  },
+  {
+   "id": "stamps",
+   "name": "Stamp albums",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.35,
+    "h": 0.32,
+    "d": 0.285
+   },
+   "card": "cards/stamps.webp",
+   "value": {
+    "min": 0.4,
+    "max": 100.0
+   },
+   "flags": "Can be replica; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/stamps.json"
+  },
+  {
+   "id": "model_train",
+   "name": "Model train set",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.6,
+    "h": 0.214,
+    "d": 0.344
+   },
+   "card": "cards/model_train.webp",
+   "value": {
+    "min": 1.0,
+    "max": 70.0
+   },
+   "flags": "Can be replica; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/model_train.json"
+  },
+  {
+   "id": "action_figures",
+   "name": "Boxed action figures",
+   "category": "Collectibles",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.197,
+    "h": 0.5,
+    "d": 0.157
+   },
+   "card": "cards/action_figures.webp",
+   "value": {
+    "min": 0.6,
+    "max": 60.0
+   },
+   "flags": "Can be replica; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/action_figures.json"
+  },
+  {
+   "id": "toy_robot",
+   "name": "Vintage tin robot",
+   "category": "Collectibles",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.167,
+    "h": 0.25,
+    "d": 0.162
+   },
+   "card": "cards/toy_robot.webp",
+   "value": {
+    "min": 0.8,
+    "max": 50.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/toy_robot.json"
+  },
+  {
+   "id": "vinyl",
+   "name": "Crate of vinyl records",
+   "category": "Collectibles",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.4,
+    "h": 0.348,
+    "d": 0.388
+   },
+   "card": "cards/vinyl.webp",
+   "value": {
+    "min": 0.8,
+    "max": 30.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/vinyl.json"
+  },
+  {
+   "id": "gold_bars",
+   "name": "Gold bullion",
+   "category": "Valuables",
+   "rarity": "Very rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.217,
+    "h": 0.161,
+    "d": 0.26
+   },
+   "card": "cards/gold_bars.webp",
+   "value": {
+    "min": 40.0,
+    "max": 1200.0
+   },
+   "flags": "Fits in safe",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/gold_bars.json"
+  },
+  {
+   "id": "watch",
+   "name": "Luxury wristwatch",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.096,
+    "h": 0.12,
+    "d": 0.113
+   },
+   "card": "cards/watch.webp",
+   "value": {
+    "min": 2.0,
+    "max": 600.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/watch.json"
+  },
+  {
+   "id": "jewelry_box",
+   "name": "Jewelry box",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.275,
+    "h": 0.3,
+    "d": 0.241
+   },
+   "card": "cards/jewelry_box.webp",
+   "value": {
+    "min": 1.0,
+    "max": 300.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/jewelry_box.json"
+  },
+  {
+   "id": "ring_box",
+   "name": "Diamond ring",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.059,
+    "h": 0.08,
+    "d": 0.077
+   },
+   "card": "cards/ring_box.webp",
+   "value": {
+    "min": 1.0,
+    "max": 240.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/ring_box.json"
+  },
+  {
+   "id": "bonds",
+   "name": "Envelope of savings bonds",
+   "category": "Valuables",
+   "rarity": "Very rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.249,
+    "h": 0.3,
+    "d": 0.108
+   },
+   "card": "cards/bonds.webp",
+   "value": {
+    "min": 1.0,
+    "max": 200.0
+   },
+   "flags": "Fits in safe",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/bonds.json"
+  },
+  {
+   "id": "cash_can",
+   "name": "Coffee can of cash",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.148,
+    "h": 0.2,
+    "d": 0.142
+   },
+   "card": "cards/cash_can.webp",
+   "value": {
+    "min": 0.4,
+    "max": 160.0
+   },
+   "flags": "Fits in safe",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/cash_can.json"
+  },
+  {
+   "id": "pearls",
+   "name": "Pearl necklace",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.183,
+    "h": 0.226,
+    "d": 0.25
+   },
+   "card": "cards/pearls.webp",
+   "value": {
+    "min": 1.0,
+    "max": 120.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/pearls.json"
+  },
+  {
+   "id": "silverware",
+   "name": "Silverware chest",
+   "category": "Valuables",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.452,
+    "h": 0.428,
+    "d": 0.5
+   },
+   "card": "cards/silverware.webp",
+   "value": {
+    "min": 1.2,
+    "max": 60.0
+   },
+   "flags": "Can be replica; Fits in safe; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/silverware.json"
+  },
+  {
+   "id": "painting",
+   "name": "Framed painting",
+   "category": "Art & Antiques",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.837,
+    "h": 0.9,
+    "d": 0.109
+   },
+   "card": "cards/painting.webp",
+   "value": {
+    "min": 0.6,
+    "max": 500.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/painting.json"
+  },
+  {
+   "id": "vase",
+   "name": "Porcelain vase",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.271,
+    "h": 0.45,
+    "d": 0.273
+   },
+   "card": "cards/vase.webp",
+   "value": {
+    "min": 0.4,
+    "max": 180.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/vase.json"
+  },
+  {
+   "id": "sword",
+   "name": "Antique sword",
+   "category": "Art & Antiques",
+   "rarity": "Very rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.95,
+    "h": 0.208,
+    "d": 0.258
+   },
+   "card": "cards/sword.webp",
+   "value": {
+    "min": 2.0,
+    "max": 180.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/sword.json"
+  },
+  {
+   "id": "tiffany_lamp",
+   "name": "Stained-glass lamp",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.463,
+    "h": 0.6,
+    "d": 0.457
+   },
+   "card": "cards/tiffany_lamp.webp",
+   "value": {
+    "min": 1.6,
+    "max": 140.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/tiffany_lamp.json"
+  },
+  {
+   "id": "chandelier",
+   "name": "Crystal chandelier",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.618,
+    "h": 0.8,
+    "d": 0.555
+   },
+   "card": "cards/chandelier.webp",
+   "value": {
+    "min": 2.0,
+    "max": 120.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/chandelier.json"
+  },
+  {
+   "id": "rug",
+   "name": "Rolled Persian rug",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.8,
+    "h": 0.766,
+    "d": 1.527
+   },
+   "card": "cards/rug.webp",
+   "value": {
+    "min": 1.0,
+    "max": 120.0
+   },
+   "flags": "Can be replica; Soft goods; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/rug.json"
+  },
+  {
+   "id": "grandfather_clock",
+   "name": "Grandfather clock",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 0.692,
+    "h": 2.0,
+    "d": 0.454
+   },
+   "card": "cards/grandfather_clock.webp",
+   "value": {
+    "min": 4.0,
+    "max": 100.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/grandfather_clock.json"
+  },
+  {
+   "id": "bust",
+   "name": "Marble bust",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.268,
+    "h": 0.5,
+    "d": 0.308
+   },
+   "card": "cards/bust.webp",
+   "value": {
+    "min": 1.0,
+    "max": 80.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/bust.json"
+  },
+  {
+   "id": "globe",
+   "name": "Antique globe",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.71,
+    "h": 0.9,
+    "d": 0.709
+   },
+   "card": "cards/globe.webp",
+   "value": {
+    "min": 0.8,
+    "max": 30.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box"
+   ],
+   "model": "models/items/globe.json"
+  },
+  {
+   "id": "typewriter",
+   "name": "Vintage typewriter",
+   "category": "Art & Antiques",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.35,
+    "h": 0.338,
+    "d": 0.301
+   },
+   "card": "cards/typewriter.webp",
+   "value": {
+    "min": 0.6,
+    "max": 24.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/typewriter.json"
+  },
+  {
+   "id": "mirror",
+   "name": "Ornate mirror",
+   "category": "Art & Antiques",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.86,
+    "h": 1.0,
+    "d": 0.074
+   },
+   "card": "cards/mirror.webp",
+   "value": {
+    "min": 0.6,
+    "max": 16.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp"
+   ],
+   "model": "models/items/mirror.json"
+  },
+  {
+   "id": "golf",
+   "name": "Golf clubs & bag",
+   "category": "Sports",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.465,
+    "h": 1.2,
+    "d": 0.548
+   },
+   "card": "cards/golf.webp",
+   "value": {
+    "min": 1.6,
+    "max": 50.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/golf.json"
+  },
+  {
+   "id": "treadmill",
+   "name": "Treadmill",
+   "category": "Sports",
+   "rarity": "Rare",
+   "size": "Extra large",
+   "dims_m": {
+    "w": 1.279,
+    "h": 1.764,
+    "d": 1.8
+   },
+   "card": "cards/treadmill.webp",
+   "value": {
+    "min": 2.0,
+    "max": 24.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp"
+   ],
+   "model": "models/items/treadmill.json"
+  },
+  {
+   "id": "surfboard",
+   "name": "Surfboard",
+   "category": "Sports",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 2.0,
+    "h": 0.294,
+    "d": 0.812
+   },
+   "card": "cards/surfboard.webp",
+   "value": {
+    "min": 2.0,
+    "max": 24.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/surfboard.json"
+  },
+  {
+   "id": "fishing",
+   "name": "Fishing rods & tackle",
+   "category": "Sports",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.8,
+    "h": 0.856,
+    "d": 1.173
+   },
+   "card": "cards/fishing.webp",
+   "value": {
+    "min": 0.8,
+    "max": 14.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/fishing.json"
+  },
+  {
+   "id": "skis",
+   "name": "Skis & poles",
+   "category": "Sports",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.173,
+    "h": 0.224,
+    "d": 1.8
+   },
+   "card": "cards/skis.webp",
+   "value": {
+    "min": 1.0,
+    "max": 12.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/skis.json"
+  },
+  {
+   "id": "dumbbells",
+   "name": "Dumbbell set & rack",
+   "category": "Sports",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.0,
+    "h": 0.809,
+    "d": 0.511
+   },
+   "card": "cards/dumbbells.webp",
+   "value": {
+    "min": 0.8,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp"
+   ],
+   "model": "models/items/dumbbells.json"
+  },
+  {
+   "id": "hoop",
+   "name": "Basketball hoop",
+   "category": "Sports",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.637,
+    "h": 2.6,
+    "d": 1.732
+   },
+   "card": "cards/hoop.webp",
+   "value": {
+    "min": 1.2,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/hoop.json"
+  },
+  {
+   "id": "punching_bag",
+   "name": "Heavy bag",
+   "category": "Sports",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.2,
+    "h": 0.608,
+    "d": 0.971
+   },
+   "card": "cards/punching_bag.webp",
+   "value": {
+    "min": 0.6,
+    "max": 4.0
+   },
+   "flags": "Soft goods",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/punching_bag.json"
+  },
+  {
+   "id": "bowling",
+   "name": "Bowling balls & bag",
+   "category": "Sports",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.5,
+    "h": 0.373,
+    "d": 0.41
+   },
+   "card": "cards/bowling.webp",
+   "value": {
+    "min": 0.4,
+    "max": 3.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/bowling.json"
+  },
+  {
+   "id": "pinball",
+   "name": "Pinball machine",
+   "category": "Toys",
+   "rarity": "Very rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.198,
+    "h": 1.9,
+    "d": 1.757
+   },
+   "card": "cards/pinball.webp",
+   "value": {
+    "min": 10.0,
+    "max": 120.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/pinball.json"
+  },
+  {
+   "id": "lego_bin",
+   "name": "Bin of building bricks",
+   "category": "Toys",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.454,
+    "h": 0.5,
+    "d": 0.388
+   },
+   "card": "cards/lego_bin.webp",
+   "value": {
+    "min": 0.6,
+    "max": 30.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/lego_bin.json"
+  },
+  {
+   "id": "dollhouse",
+   "name": "Dollhouse",
+   "category": "Toys",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.775,
+    "h": 0.8,
+    "d": 0.426
+   },
+   "card": "cards/dollhouse.webp",
+   "value": {
+    "min": 0.6,
+    "max": 12.0
+   },
+   "flags": "Can be replica",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/dollhouse.json"
+  },
+  {
+   "id": "rocking_horse",
+   "name": "Rocking horse",
+   "category": "Toys",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.407,
+    "h": 0.897,
+    "d": 1.0
+   },
+   "card": "cards/rocking_horse.webp",
+   "value": {
+    "min": 0.6,
+    "max": 8.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/rocking_horse.json"
+  },
+  {
+   "id": "plush_pile",
+   "name": "Pile of plush toys",
+   "category": "Toys",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.8,
+    "h": 0.575,
+    "d": 0.775
+   },
+   "card": "cards/plush_pile.webp",
+   "value": {
+    "min": 0.2,
+    "max": 4.0
+   },
+   "flags": "Soft goods",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/plush_pile.json"
+  },
+  {
+   "id": "kid_bike",
+   "name": "Child's bicycle",
+   "category": "Toys",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.0,
+    "h": 0.752,
+    "d": 0.617
+   },
+   "card": "cards/kid_bike.webp",
+   "value": {
+    "min": 0.4,
+    "max": 3.0
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/kid_bike.json"
+  },
+  {
+   "id": "handbag",
+   "name": "Designer handbag",
+   "category": "Clothing",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.35,
+    "h": 0.286,
+    "d": 0.172
+   },
+   "card": "cards/handbag.webp",
+   "value": {
+    "min": 2.0,
+    "max": 240.0
+   },
+   "flags": "Can be replica; Fits in safe",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_safe",
+    "cover_trunk"
+   ],
+   "model": "models/items/handbag.json"
+  },
+  {
+   "id": "fur_coat",
+   "name": "Fur coat on mannequin",
+   "category": "Clothing",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 1.06,
+    "h": 1.7,
+    "d": 0.627
+   },
+   "card": "cards/fur_coat.webp",
+   "value": {
+    "min": 2.0,
+    "max": 80.0
+   },
+   "flags": "Can be replica; Soft goods",
+   "can_be_replica": true,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/fur_coat.json"
+  },
+  {
+   "id": "sneakers",
+   "name": "Stack of sneaker boxes",
+   "category": "Clothing",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.331,
+    "h": 0.5,
+    "d": 0.364
+   },
+   "card": "cards/sneakers.webp",
+   "value": {
+    "min": 0.6,
+    "max": 60.0
+   },
+   "flags": "Can be replica; Stackable",
+   "can_be_replica": true,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/sneakers.json"
+  },
+  {
+   "id": "clothes_rack",
+   "name": "Rack of clothes",
+   "category": "Clothing",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.387,
+    "h": 1.6,
+    "d": 0.903
+   },
+   "card": "cards/clothes_rack.webp",
+   "value": {
+    "min": 0.8,
+    "max": 40.0
+   },
+   "flags": "Can be replica; Soft goods",
+   "can_be_replica": true,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/clothes_rack.json"
+  },
+  {
+   "id": "wedding_dress",
+   "name": "Boxed wedding dress",
+   "category": "Clothing",
+   "rarity": "Rare",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.45,
+    "h": 0.236,
+    "d": 0.8
+   },
+   "card": "cards/wedding_dress.webp",
+   "value": {
+    "min": 1.0,
+    "max": 40.0
+   },
+   "flags": "Soft goods; Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/wedding_dress.json"
+  },
+  {
+   "id": "leather_jackets",
+   "name": "Leather jackets",
+   "category": "Clothing",
+   "rarity": "Rare",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.637,
+    "h": 0.7,
+    "d": 0.684
+   },
+   "card": "cards/leather_jackets.webp",
+   "value": {
+    "min": 0.6,
+    "max": 18.0
+   },
+   "flags": "Soft goods; Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/leather_jackets.json"
+  },
+  {
+   "id": "cooler",
+   "name": "Camping gear & cooler",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.745,
+    "h": 0.8,
+    "d": 0.491
+   },
+   "card": "cards/cooler.webp",
+   "value": {
+    "min": 0.4,
+    "max": 5.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/cooler.json"
+  },
+  {
+   "id": "tires",
+   "name": "Stack of old tires",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.612,
+    "h": 0.9,
+    "d": 0.612
+   },
+   "card": "cards/tires.webp",
+   "value": {
+    "min": 0.2,
+    "max": 4.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/tires.json"
+  },
+  {
+   "id": "books",
+   "name": "Boxes of books",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.587,
+    "h": 0.501,
+    "d": 0.6
+   },
+   "card": "cards/books.webp",
+   "value": {
+    "min": 0.1,
+    "max": 3.0
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/books.json"
+  },
+  {
+   "id": "misc_tub",
+   "name": "Tub of odds and ends",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.549,
+    "h": 0.6,
+    "d": 0.447
+   },
+   "card": "cards/misc_tub.webp",
+   "value": {
+    "min": 0.1,
+    "max": 2.4
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/misc_tub.json"
+  },
+  {
+   "id": "xmas",
+   "name": "Box of holiday decorations",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.6,
+    "h": 0.521,
+    "d": 0.562
+   },
+   "card": "cards/xmas.webp",
+   "value": {
+    "min": 0.2,
+    "max": 2.4
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/xmas.json"
+  },
+  {
+   "id": "exercise_bike",
+   "name": "Old exercise bike",
+   "category": "Junk",
+   "rarity": "Rare",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.127,
+    "h": 1.2,
+    "d": 0.625
+   },
+   "card": "cards/exercise_bike.webp",
+   "value": {
+    "min": 0.2,
+    "max": 2.4
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/exercise_bike.json"
+  },
+  {
+   "id": "magazines",
+   "name": "Bundle of old magazines",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.35,
+    "h": 0.214,
+    "d": 0.29
+   },
+   "card": "cards/magazines.webp",
+   "value": {
+    "min": 0.1,
+    "max": 1.6
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/magazines.json"
+  },
+  {
+   "id": "dvds",
+   "name": "Box of DVDs",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.45,
+    "h": 0.421,
+    "d": 0.438
+   },
+   "card": "cards/dvds.webp",
+   "value": {
+    "min": 0.1,
+    "max": 1.6
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/dvds.json"
+  },
+  {
+   "id": "clothes_bags",
+   "name": "Bags of old clothes",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Medium",
+   "dims_m": {
+    "w": 0.8,
+    "h": 0.582,
+    "d": 0.491
+   },
+   "card": "cards/clothes_bags.webp",
+   "value": {
+    "min": 0.1,
+    "max": 1.2
+   },
+   "flags": "Soft goods",
+   "can_be_replica": false,
+   "covers": [
+    "cover_crate",
+    "cover_tarp",
+    "cover_blanket",
+    "cover_trashbag"
+   ],
+   "model": "models/items/clothes_bags.json"
+  },
+  {
+   "id": "old_mattress",
+   "name": "Stained mattress",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Large",
+   "dims_m": {
+    "w": 1.752,
+    "h": 1.711,
+    "d": 1.9
+   },
+   "card": "cards/old_mattress.webp",
+   "value": {
+    "min": 0.0,
+    "max": 0.8
+   },
+   "flags": "Soft goods",
+   "can_be_replica": false,
+   "covers": [
+    "cover_tarp",
+    "cover_blanket"
+   ],
+   "model": "models/items/old_mattress.json"
+  },
+  {
+   "id": "paint_cans",
+   "name": "Old paint cans",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.331,
+    "h": 0.257,
+    "d": 0.4
+   },
+   "card": "cards/paint_cans.webp",
+   "value": {
+    "min": 0.0,
+    "max": 0.6
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/paint_cans.json"
+  },
+  {
+   "id": "hose",
+   "name": "Garden hose & tools",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.526,
+    "h": 0.33,
+    "d": 0.6
+   },
+   "card": "cards/hose.webp",
+   "value": {
+    "min": 0.1,
+    "max": 0.6
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/hose.json"
+  },
+  {
+   "id": "office_boxes",
+   "name": "File boxes of paperwork",
+   "category": "Junk",
+   "rarity": "Common",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.459,
+    "h": 0.6,
+    "d": 0.381
+   },
+   "card": "cards/office_boxes.webp",
+   "value": {
+    "min": 0.0,
+    "max": 0.4
+   },
+   "flags": "Stackable",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_trunk"
+   ],
+   "model": "models/items/office_boxes.json"
+  },
+  {
+   "id": "broken_fan",
+   "name": "Broken box fan",
+   "category": "Junk",
+   "rarity": "Uncommon",
+   "size": "Small",
+   "dims_m": {
+    "w": 0.491,
+    "h": 0.55,
+    "d": 0.197
+   },
+   "card": "cards/broken_fan.webp",
+   "value": {
+    "min": 0.0,
+    "max": 0.3
+   },
+   "flags": "",
+   "can_be_replica": false,
+   "covers": [
+    "cover_box",
+    "cover_suitcase",
+    "cover_trunk"
+   ],
+   "model": "models/items/broken_fan.json"
+  }
+ ],
+ "covers": [
+  {
+   "id": "cover_box",
+   "name": "Cardboard box",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.5,
+    "h": 0.492,
+    "d": 0.48
+   },
+   "card": "cards/cover_box.webp",
+   "model": "models/covers/cover_box.json"
+  },
+  {
+   "id": "cover_crate",
+   "name": "Wooden crate",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.666,
+    "h": 0.7,
+    "d": 0.663
+   },
+   "card": "cards/cover_crate.webp",
+   "model": "models/covers/cover_crate.json"
+  },
+  {
+   "id": "cover_safe",
+   "name": "Locked safe",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.516,
+    "h": 0.6,
+    "d": 0.528
+   },
+   "card": "cards/cover_safe.webp",
+   "model": "models/covers/cover_safe.json"
+  },
+  {
+   "id": "cover_suitcase",
+   "name": "Suitcase",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.625,
+    "h": 0.7,
+    "d": 0.319
+   },
+   "card": "cards/cover_suitcase.webp",
+   "model": "models/covers/cover_suitcase.json"
+  },
+  {
+   "id": "cover_trashbag",
+   "name": "Trash bag",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.591,
+    "h": 0.7,
+    "d": 0.602
+   },
+   "card": "cards/cover_trashbag.webp",
+   "model": "models/covers/cover_trashbag.json"
+  },
+  {
+   "id": "cover_tarp",
+   "name": "Tarp",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 1.227,
+    "h": 1.013,
+    "d": 1.226
+   },
+   "card": "cards/cover_tarp.webp",
+   "model": "models/covers/cover_tarp.json"
+  },
+  {
+   "id": "cover_blanket",
+   "name": "Blanket",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 1.202,
+    "h": 1.012,
+    "d": 1.201
+   },
+   "card": "cards/cover_blanket.webp",
+   "model": "models/covers/cover_blanket.json"
+  },
+  {
+   "id": "cover_trunk",
+   "name": "Steamer trunk",
+   "category": "Concealment",
+   "rarity": null,
+   "size": "Matches item",
+   "dims_m": {
+    "w": 0.9,
+    "h": 0.605,
+    "d": 0.638
+   },
+   "card": null,
+   "model": "models/covers/cover_trunk.json"
+  }
+ ],
+ "cover_fits": {
+  "_about": "For each item, the containers that can hide it and how to place them. Put the container at the item's position with the lot yaw, scale it by `scale` [x, y, z] (glTF axes, the container's own w/h/d), rotate the item by an extra `item_yaw` degrees inside it, and raise the item by `item_offset_y` metres. Every pairing was ray-tested: no part of the item is visible from above or the sides. Drapes (tarp, blanket) are open at the floor.",
+  "wardrobe": {
+   "cover_tarp": {
+    "scale": [
+     1.638,
+     2.203,
+     0.982
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.01,
+     2.23,
+     1.2
+    ]
+   }
+  },
+  "dining_table": {
+   "cover_tarp": {
+    "scale": [
+     1.944,
+     0.975,
+     1.353
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.39,
+     0.99,
+     1.66
+    ]
+   }
+  },
+  "sofa": {
+   "cover_tarp": {
+    "scale": [
+     2.268,
+     1.323,
+     1.122
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.78,
+     1.34,
+     1.38
+    ]
+   }
+  },
+  "bed": {
+   "cover_tarp": {
+    "scale": [
+     2.268,
+     1.678,
+     1.968
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.78,
+     1.7,
+     2.41
+    ]
+   }
+  },
+  "dresser": {
+   "cover_tarp": {
+    "scale": [
+     0.895,
+     1.212,
+     0.722
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.1,
+     1.23,
+     0.89
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.892,
+     1.213,
+     0.719
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.07,
+     1.23,
+     0.86
+    ]
+   }
+  },
+  "desk": {
+   "cover_tarp": {
+    "scale": [
+     1.404,
+     0.978,
+     0.851
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.72,
+     0.99,
+     1.04
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.398,
+     0.979,
+     0.847
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.68,
+     0.99,
+     1.02
+    ]
+   }
+  },
+  "rocking_chair": {
+   "cover_tarp": {
+    "scale": [
+     0.838,
+     1.212,
+     0.668
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     1.23,
+     0.82
+    ]
+   }
+  },
+  "office_chair": {
+   "cover_crate": {
+    "scale": [
+     1.485,
+     2.049,
+     1.445
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.99,
+     1.43,
+     0.96
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.856,
+     1.267,
+     0.83
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.05,
+     1.28,
+     1.02
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.853,
+     1.268,
+     0.827
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     1.28,
+     0.99
+    ]
+   }
+  },
+  "armchair": {
+   "cover_tarp": {
+    "scale": [
+     0.903,
+     1.101,
+     0.786
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.11,
+     1.12,
+     0.96
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.899,
+     1.103,
+     0.782
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.08,
+     1.12,
+     0.94
+    ]
+   }
+  },
+  "coffee_table": {
+   "cover_crate": {
+    "scale": [
+     2.06,
+     0.942,
+     1.512
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.37,
+     0.66,
+     1.0
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.188,
+     0.583,
+     0.869
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.46,
+     0.59,
+     1.07
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.183,
+     0.583,
+     0.865
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.42,
+     0.59,
+     1.04
+    ]
+   }
+  },
+  "chairs": {
+   "cover_tarp": {
+    "scale": [
+     0.808,
+     1.101,
+     0.478
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.99,
+     1.12,
+     0.59
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.804,
+     1.103,
+     0.476
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.97,
+     1.12,
+     0.57
+    ]
+   }
+  },
+  "bookshelf": {
+   "cover_tarp": {
+    "scale": [
+     1.258,
+     1.983,
+     0.523
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.54,
+     2.01,
+     0.64
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.253,
+     1.985,
+     0.567
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.51,
+     2.01,
+     0.68
+    ]
+   }
+  },
+  "lamp": {
+   "cover_crate": {
+    "scale": [
+     1.348,
+     2.85,
+     1.351
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.9,
+     1.99,
+     0.9
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.778,
+     1.762,
+     0.776
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.95,
+     1.78,
+     0.95
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.774,
+     1.764,
+     0.773
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.93,
+     1.79,
+     0.93
+    ]
+   }
+  },
+  "nightstand": {
+   "cover_crate": {
+    "scale": [
+     1.02,
+     1.069,
+     0.893
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.68,
+     0.75,
+     0.59
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.589,
+     0.661,
+     0.513
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.72,
+     0.67,
+     0.63
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.586,
+     0.662,
+     0.511
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.7,
+     0.67,
+     0.61
+    ]
+   }
+  },
+  "espresso": {
+   "cover_box": {
+    "scale": [
+     0.909,
+     0.958,
+     0.827
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.45,
+     0.47,
+     0.4
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.875,
+     0.875,
+     1.4
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.55,
+     0.61,
+     0.45
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.825,
+     0.659
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.5,
+     0.42
+    ]
+   }
+  },
+  "fridge": {
+   "cover_tarp": {
+    "scale": [
+     1.037,
+     1.983,
+     0.977
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.27,
+     2.01,
+     1.2
+    ]
+   }
+  },
+  "sewing_machine": {
+   "cover_box": {
+    "scale": [
+     1.06,
+     0.752,
+     0.523
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.37,
+     0.25
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.848,
+     0.61,
+     0.885
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.53,
+     0.43,
+     0.28
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.602,
+     0.647,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.39,
+     0.38
+    ]
+   }
+  },
+  "washer": {
+   "cover_tarp": {
+    "scale": [
+     0.714,
+     0.991,
+     0.684
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.88,
+     1.0,
+     0.84
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.711,
+     0.992,
+     0.681
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.85,
+     1.0,
+     0.82
+    ]
+   }
+  },
+  "mixer": {
+   "cover_box": {
+    "scale": [
+     0.942,
+     0.924,
+     0.564
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.47,
+     0.45,
+     0.27
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.754,
+     0.749,
+     0.955
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.47,
+     0.52,
+     0.3
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.796,
+     0.6
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.48,
+     0.38
+    ]
+   }
+  },
+  "ac_unit": {
+   "cover_crate": {
+    "scale": [
+     1.217,
+     0.887,
+     1.072
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.81,
+     0.62,
+     0.71
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.702,
+     0.549,
+     0.616
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.86,
+     0.56,
+     0.76
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.699,
+     0.549,
+     0.614
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.84,
+     0.56,
+     0.74
+    ]
+   },
+   "cover_box": {
+    "scale": [
+     1.531,
+     1.192,
+     1.399
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.77,
+     0.59,
+     0.67
+    ]
+   }
+  },
+  "vacuum": {
+   "cover_crate": {
+    "scale": [
+     1.577,
+     1.96,
+     0.865
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.05,
+     1.37,
+     0.57
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.909,
+     1.212,
+     0.497
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.12,
+     1.23,
+     0.61
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.906,
+     1.213,
+     0.495
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.09,
+     1.23,
+     0.59
+    ]
+   }
+  },
+  "mini_fridge": {
+   "cover_crate": {
+    "scale": [
+     1.344,
+     1.514,
+     1.144
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.9,
+     1.06,
+     0.76
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.775,
+     0.936,
+     0.657
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.95,
+     0.95,
+     0.81
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.772,
+     0.937,
+     0.654
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.93,
+     0.95,
+     0.79
+    ]
+   }
+  },
+  "microwave": {
+   "cover_box": {
+    "scale": [
+     1.178,
+     0.881,
+     0.736
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.59,
+     0.43,
+     0.35
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.942,
+     0.779,
+     1.246
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.59,
+     0.55,
+     0.4
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.669,
+     0.759,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.6,
+     0.46,
+     0.38
+    ]
+   }
+  },
+  "arcade": {
+   "cover_tarp": {
+    "scale": [
+     1.157,
+     1.983,
+     0.985
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.42,
+     2.01,
+     1.21
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.152,
+     1.985,
+     0.981
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.38,
+     2.01,
+     1.18
+    ]
+   }
+  },
+  "camera": {
+   "cover_box": {
+    "scale": [
+     1.06,
+     0.91,
+     0.797
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.45,
+     0.38
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.848,
+     0.844,
+     1.35
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.53,
+     0.59,
+     0.43
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.602,
+     0.783,
+     0.635
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.47,
+     0.41
+    ]
+   }
+  },
+  "pc_tower": {
+   "cover_box": {
+    "scale": [
+     1.027,
+     1.197,
+     0.65
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.51,
+     0.59,
+     0.31
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.822,
+     0.971,
+     1.101
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.51,
+     0.68,
+     0.35
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     1.031,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.62,
+     0.38
+    ]
+   }
+  },
+  "drone": {
+   "cover_box": {
+    "scale": [
+     1.06,
+     0.673,
+     1.089
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.33,
+     0.52
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.602,
+     0.6,
+     0.868
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.55
+    ]
+   }
+  },
+  "laptop": {
+   "cover_box": {
+    "scale": [
+     0.895,
+     0.756,
+     0.866
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.45,
+     0.37,
+     0.42
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.916,
+     0.916,
+     1.466
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.57,
+     0.64,
+     0.47
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.651,
+     0.69
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.39,
+     0.44
+    ]
+   }
+  },
+  "flat_tv": {
+   "cover_tarp": {
+    "scale": [
+     1.404,
+     0.967,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.72,
+     0.98,
+     0.49
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.398,
+     0.968,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.68,
+     0.98,
+     0.48
+    ]
+   }
+  },
+  "speakers": {
+   "cover_crate": {
+    "scale": [
+     1.603,
+     1.782,
+     0.705
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.07,
+     1.25,
+     0.47
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.924,
+     1.101,
+     0.405
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.13,
+     1.12,
+     0.5
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.921,
+     1.103,
+     0.404
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.11,
+     1.12,
+     0.49
+    ]
+   }
+  },
+  "turntable": {
+   "cover_box": {
+    "scale": [
+     1.06,
+     0.45,
+     0.969
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.22,
+     0.47
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.602,
+     0.6,
+     0.772
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.49
+    ]
+   }
+  },
+  "vr_kit": {
+   "cover_box": {
+    "scale": [
+     0.942,
+     0.795,
+     0.785
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.47,
+     0.39,
+     0.38
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.831,
+     0.831,
+     1.329
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.52,
+     0.58,
+     0.42
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.684,
+     0.625
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.41,
+     0.4
+    ]
+   }
+  },
+  "console": {
+   "cover_box": {
+    "scale": [
+     0.942,
+     0.45,
+     0.913
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.47,
+     0.22,
+     0.44
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.727
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.46
+    ]
+   }
+  },
+  "crt_tv": {
+   "cover_crate": {
+    "scale": [
+     0.972,
+     1.069,
+     0.604
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.65,
+     0.75,
+     0.4
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.56,
+     0.661,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.69,
+     0.67,
+     0.49
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.558,
+     0.662,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.67,
+     0.67,
+     0.48
+    ]
+   },
+   "cover_box": {
+    "scale": [
+     1.223,
+     1.436,
+     0.788
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.61,
+     0.71,
+     0.38
+    ]
+   }
+  },
+  "generator": {
+   "cover_crate": {
+    "scale": [
+     1.311,
+     1.21,
+     0.989
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.87,
+     0.85,
+     0.66
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.756,
+     0.748,
+     0.568
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.93,
+     0.76,
+     0.7
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.753,
+     0.749,
+     0.566
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.91,
+     0.76,
+     0.68
+    ]
+   }
+  },
+  "welder": {
+   "cover_crate": {
+    "scale": [
+     0.955,
+     1.069,
+     0.692
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.64,
+     0.75,
+     0.46
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.551,
+     0.661,
+     0.4
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.68,
+     0.67,
+     0.49
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.548,
+     0.662,
+     0.4
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.66,
+     0.67,
+     0.48
+    ]
+   },
+   "cover_box": {
+    "scale": [
+     1.201,
+     1.436,
+     0.903
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.6,
+     0.71,
+     0.43
+    ]
+   }
+  },
+  "table_saw": {
+   "cover_tarp": {
+    "scale": [
+     0.997,
+     1.101,
+     0.982
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.22,
+     1.12,
+     1.2
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.993,
+     1.103,
+     0.978
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.19,
+     1.12,
+     1.17
+    ]
+   }
+  },
+  "mower": {
+   "cover_tarp": {
+    "scale": [
+     1.62,
+     1.498,
+     0.793
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.99,
+     1.52,
+     0.97
+    ]
+   }
+  },
+  "compressor": {
+   "cover_crate": {
+    "scale": [
+     1.123,
+     1.023,
+     0.816
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.75,
+     0.72,
+     0.54
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.648,
+     0.632,
+     0.469
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.8,
+     0.64,
+     0.57
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.645,
+     0.633,
+     0.467
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.78,
+     0.64,
+     0.56
+    ]
+   }
+  },
+  "toolbox": {
+   "cover_box": {
+    "scale": [
+     1.296,
+     1.015,
+     1.205
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.65,
+     0.5,
+     0.58
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.736,
+     0.874,
+     0.96
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.66,
+     0.53,
+     0.61
+    ]
+   }
+  },
+  "pressure_washer": {
+   "cover_crate": {
+    "scale": [
+     1.685,
+     1.475,
+     1.13
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.12,
+     1.03,
+     0.75
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.972,
+     0.912,
+     0.65
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.19,
+     0.92,
+     0.8
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.968,
+     0.913,
+     0.647
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.16,
+     0.92,
+     0.78
+    ]
+   }
+  },
+  "drill_set": {
+   "cover_box": {
+    "scale": [
+     1.142,
+     1.197,
+     1.148
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.57,
+     0.59,
+     0.55
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.649,
+     1.031,
+     0.915
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.58,
+     0.62,
+     0.58
+    ]
+   }
+  },
+  "ladder": {
+   "cover_tarp": {
+    "scale": [
+     2.16,
+     0.869,
+     1.475
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.65,
+     0.88,
+     1.81
+    ]
+   }
+  },
+  "motorcycle": {
+   "cover_tarp": {
+    "scale": [
+     2.268,
+     1.313,
+     1.045
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.78,
+     1.33,
+     1.28
+    ]
+   }
+  },
+  "jetski": {
+   "cover_tarp": {
+    "scale": [
+     3.24,
+     2.283,
+     1.738
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     3.98,
+     2.31,
+     2.13
+    ]
+   }
+  },
+  "atv": {
+   "cover_tarp": {
+    "scale": [
+     2.052,
+     1.535,
+     1.381
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.52,
+     1.55,
+     1.69
+    ]
+   }
+  },
+  "gokart": {
+   "cover_tarp": {
+    "scale": [
+     1.728,
+     0.729,
+     1.079
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.12,
+     0.74,
+     1.32
+    ]
+   }
+  },
+  "bicycle": {
+   "cover_tarp": {
+    "scale": [
+     1.89,
+     1.195,
+     0.591
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.32,
+     1.21,
+     0.72
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.882,
+     1.196,
+     0.589
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.26,
+     1.21,
+     0.71
+    ]
+   }
+  },
+  "scooter": {
+   "cover_crate": {
+    "scale": [
+     2.06,
+     1.824,
+     1.443
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.37,
+     1.28,
+     0.96
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.188,
+     1.128,
+     0.829
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.46,
+     1.14,
+     1.02
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.183,
+     1.129,
+     0.826
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.42,
+     1.14,
+     0.99
+    ]
+   }
+  },
+  "kayak": {
+   "cover_tarp": {
+    "scale": [
+     2.808,
+     0.702,
+     2.642
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     3.45,
+     0.71,
+     3.24
+    ]
+   }
+  },
+  "violin": {
+   "cover_box": {
+    "scale": [
+     1.884,
+     0.859,
+     1.3
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.94,
+     0.42,
+     0.62
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     1.071,
+     0.74,
+     1.036
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.96,
+     0.45,
+     0.66
+    ]
+   }
+  },
+  "upright_piano": {
+   "cover_tarp": {
+    "scale": [
+     1.62,
+     1.596,
+     0.937
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.99,
+     1.62,
+     1.15
+    ]
+   }
+  },
+  "saxophone": {
+   "cover_box": {
+    "scale": [
+     1.168,
+     1.915,
+     0.564
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.58,
+     0.94,
+     0.27
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.75,
+     1.649,
+     0.75
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.68,
+     1.0,
+     0.48
+    ]
+   }
+  },
+  "electric_guitar": {
+   "cover_crate": {
+    "scale": [
+     1.198,
+     1.782,
+     1.089
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.8,
+     1.25,
+     0.72
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.691,
+     1.101,
+     0.626
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.85,
+     1.12,
+     0.77
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.688,
+     1.103,
+     0.623
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.83,
+     1.12,
+     0.75
+    ]
+   }
+  },
+  "drums": {
+   "cover_tarp": {
+    "scale": [
+     1.62,
+     1.235,
+     0.896
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.99,
+     1.25,
+     1.1
+    ]
+   }
+  },
+  "acoustic": {
+   "cover_crate": {
+    "scale": [
+     0.813,
+     1.782,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     1.25,
+     0.36
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.469,
+     1.101,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.58,
+     1.12,
+     0.49
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.467,
+     1.103,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.56,
+     1.12,
+     0.48
+    ]
+   }
+  },
+  "keyboard": {
+   "cover_tarp": {
+    "scale": [
+     1.429,
+     1.487,
+     0.755
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.75,
+     1.51,
+     0.93
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.423,
+     1.488,
+     0.752
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.71,
+     1.51,
+     0.9
+    ]
+   }
+  },
+  "trumpet": {
+   "cover_box": {
+    "scale": [
+     1.413,
+     1.245,
+     1.256
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.71,
+     0.61,
+     0.6
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.803,
+     1.072,
+     1.001
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.72,
+     0.65,
+     0.64
+    ]
+   }
+  },
+  "coins": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.792,
+     0.77
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.39,
+     0.37
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.815,
+     0.815,
+     1.304
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.51,
+     0.57,
+     0.42
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.921,
+     0.835,
+     1.004
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.05,
+    "size_m": [
+     0.48,
+     0.5,
+     0.53
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.682,
+     0.614
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.41,
+     0.39
+    ]
+   }
+  },
+  "cards": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.675,
+     0.471
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.33,
+     0.23
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.66,
+     0.6,
+     0.797
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.41,
+     0.42,
+     0.25
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.669,
+     0.712,
+     1.004
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.043,
+    "size_m": [
+     0.35,
+     0.43,
+     0.53
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "comics": {
+   "cover_box": {
+    "scale": [
+     1.649,
+     0.823,
+     0.712
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.82,
+     0.4,
+     0.34
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     1.319,
+     0.824,
+     1.205
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.82,
+     0.58,
+     0.38
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.937,
+     0.709,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.84,
+     0.43,
+     0.38
+    ]
+   }
+  },
+  "signed_ball": {
+   "cover_box": {
+    "scale": [
+     0.45,
+     0.45,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.22,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.602
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.19
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.55,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.033,
+    "size_m": [
+     0.28,
+     0.33,
+     0.29
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "stamps": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.766,
+     0.699
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.38,
+     0.34
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.74,
+     0.74,
+     1.184
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.46,
+     0.52,
+     0.38
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.66,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.4,
+     0.38
+    ]
+   }
+  },
+  "model_train": {
+   "cover_box": {
+    "scale": [
+     1.413,
+     0.512,
+     0.844
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.71,
+     0.25,
+     0.41
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     1.131,
+     0.893,
+     1.429
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.71,
+     0.63,
+     0.46
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.803,
+     0.6,
+     0.672
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.72,
+     0.36,
+     0.43
+    ]
+   }
+  },
+  "action_figures": {
+   "cover_box": {
+    "scale": [
+     0.464,
+     1.197,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.59,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.607,
+     0.971,
+     0.652
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.68,
+     0.21
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     1.031,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.62,
+     0.38
+    ]
+   }
+  },
+  "toy_robot": {
+   "cover_box": {
+    "scale": [
+     0.45,
+     0.598,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.29,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.673
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.21
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "vinyl": {
+   "cover_box": {
+    "scale": [
+     0.942,
+     0.833,
+     0.952
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.47,
+     0.41,
+     0.46
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.717,
+     0.758
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.43,
+     0.48
+    ]
+   }
+  },
+  "gold_bars": {
+   "cover_box": {
+    "scale": [
+     0.612,
+     0.45,
+     0.532
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.31,
+     0.22,
+     0.26
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.901
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.29
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.637,
+     0.55,
+     0.746
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.033,
+    "size_m": [
+     0.33,
+     0.33,
+     0.39
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "watch": {
+   "cover_box": {
+    "scale": [
+     0.45,
+     0.45,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.22,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.19
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.55,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.033,
+    "size_m": [
+     0.28,
+     0.33,
+     0.29
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "jewelry_box": {
+   "cover_box": {
+    "scale": [
+     0.648,
+     0.718,
+     0.591
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.32,
+     0.35,
+     0.28
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.626,
+     0.626,
+     1.001
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.39,
+     0.44,
+     0.32
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.707,
+     0.757,
+     0.789
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.045,
+    "size_m": [
+     0.36,
+     0.45,
+     0.42
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.618,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.37,
+     0.38
+    ]
+   }
+  },
+  "ring_box": {
+   "cover_box": {
+    "scale": [
+     0.45,
+     0.45,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.22,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.19
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.55,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.033,
+    "size_m": [
+     0.28,
+     0.33,
+     0.29
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "bonds": {
+   "cover_box": {
+    "scale": [
+     0.587,
+     0.718,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.29,
+     0.35,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.19
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.757,
+     0.714
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.045,
+    "size_m": [
+     0.28,
+     0.45,
+     0.38
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.618,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.37,
+     0.38
+    ]
+   }
+  },
+  "cash_can": {
+   "cover_box": {
+    "scale": [
+     0.45,
+     0.479,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.23,
+     0.24,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.19
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.55,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.033,
+    "size_m": [
+     0.28,
+     0.33,
+     0.29
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "pearls": {
+   "cover_box": {
+    "scale": [
+     0.589,
+     0.541,
+     0.45
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.29,
+     0.27,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.6,
+     0.6,
+     0.76
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.38,
+     0.42,
+     0.24
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.55,
+     0.57,
+     0.717
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.034,
+    "size_m": [
+     0.28,
+     0.34,
+     0.38
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "silverware": {
+   "cover_box": {
+    "scale": [
+     1.178,
+     1.025,
+     1.109
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.59,
+     0.5,
+     0.53
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     1.326,
+     1.08,
+     1.434
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.065,
+    "size_m": [
+     0.68,
+     0.65,
+     0.76
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.669,
+     0.882,
+     0.883
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.6,
+     0.53,
+     0.56
+    ]
+   }
+  },
+  "painting": {
+   "cover_crate": {
+    "scale": [
+     1.567,
+     1.603,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.04,
+     1.12,
+     0.36
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.904,
+     0.991,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.11,
+     1.0,
+     0.49
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.9,
+     0.992,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.08,
+     1.0,
+     0.48
+    ]
+   }
+  },
+  "vase": {
+   "cover_box": {
+    "scale": [
+     0.643,
+     1.077,
+     0.665
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.32,
+     0.53,
+     0.32
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.704,
+     0.874,
+     1.126
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.44,
+     0.61,
+     0.36
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.795,
+     1.136,
+     0.783
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.068,
+    "size_m": [
+     0.41,
+     0.68,
+     0.41
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.928,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.56,
+     0.38
+    ]
+   }
+  },
+  "sword": {
+   "cover_box": {
+    "scale": [
+     2.238,
+     0.639,
+     0.639
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     1.12,
+     0.31,
+     0.31
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     1.271,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.14,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "tiffany_lamp": {
+   "cover_box": {
+    "scale": [
+     1.091,
+     1.436,
+     1.121
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.55,
+     0.71,
+     0.54
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     1.341,
+     1.514,
+     1.328
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.091,
+    "size_m": [
+     0.69,
+     0.91,
+     0.7
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.62,
+     1.237,
+     0.893
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.56,
+     0.75,
+     0.57
+    ]
+   }
+  },
+  "chandelier": {
+   "cover_crate": {
+    "scale": [
+     1.157,
+     1.425,
+     1.044
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.77,
+     1.0,
+     0.69
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.667,
+     0.881,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.82,
+     0.89,
+     0.74
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.665,
+     0.882,
+     0.597
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.8,
+     0.89,
+     0.72
+    ]
+   }
+  },
+  "rug": {
+   "cover_tarp": {
+    "scale": [
+     1.944,
+     0.844,
+     1.65
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.39,
+     0.85,
+     2.02
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.936,
+     0.845,
+     1.644
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.33,
+     0.86,
+     1.97
+    ]
+   }
+  },
+  "grandfather_clock": {
+   "cover_tarp": {
+    "scale": [
+     0.747,
+     2.203,
+     0.551
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.92,
+     2.23,
+     0.68
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.744,
+     2.205,
+     0.63
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.89,
+     2.23,
+     0.76
+    ]
+   }
+  },
+  "bust": {
+   "cover_box": {
+    "scale": [
+     0.726,
+     1.197,
+     0.658
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.36,
+     0.59,
+     0.32
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.696,
+     0.971,
+     1.113
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.43,
+     0.68,
+     0.36
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     1.031,
+     0.6
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.62,
+     0.38
+    ]
+   }
+  },
+  "globe": {
+   "cover_box": {
+    "scale": [
+     1.672,
+     2.154,
+     1.74
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.84,
+     1.06,
+     0.84
+    ]
+   }
+  },
+  "typewriter": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.809,
+     0.739
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.4,
+     0.35
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.781,
+     0.781,
+     1.25
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.49,
+     0.55,
+     0.4
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.697,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.42,
+     0.38
+    ]
+   }
+  },
+  "mirror": {
+   "cover_crate": {
+    "scale": [
+     1.61,
+     1.782,
+     0.55
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.07,
+     1.25,
+     0.36
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.929,
+     1.101,
+     0.4
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.14,
+     1.12,
+     0.49
+    ]
+   }
+  },
+  "golf": {
+   "cover_crate": {
+    "scale": [
+     1.026,
+     2.138,
+     0.875
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.68,
+     1.5,
+     0.58
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.592,
+     1.322,
+     0.503
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.73,
+     1.34,
+     0.62
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.589,
+     1.323,
+     0.5
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.71,
+     1.34,
+     0.6
+    ]
+   }
+  },
+  "treadmill": {
+   "cover_tarp": {
+    "scale": [
+     1.944,
+     1.943,
+     1.382
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.39,
+     1.97,
+     1.69
+    ]
+   }
+  },
+  "surfboard": {
+   "cover_tarp": {
+    "scale": [
+     2.16,
+     0.54,
+     0.878
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.65,
+     0.55,
+     1.08
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.873,
+     0.615,
+     2.153
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.05,
+     0.62,
+     2.59
+    ]
+   }
+  },
+  "fishing": {
+   "cover_crate": {
+    "scale": [
+     3.37,
+     1.525,
+     2.206
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     2.24,
+     1.07,
+     1.46
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.944,
+     0.943,
+     1.268
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.39,
+     0.96,
+     1.55
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.936,
+     0.944,
+     1.263
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.33,
+     0.96,
+     1.52
+    ]
+   }
+  },
+  "skis": {
+   "cover_crate": {
+    "scale": [
+     3.37,
+     0.843,
+     2.206
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     2.24,
+     0.59,
+     1.46
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.944,
+     0.486,
+     1.268
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.39,
+     0.49,
+     1.55
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.936,
+     0.553,
+     1.263
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.33,
+     0.56,
+     1.52
+    ]
+   }
+  },
+  "dumbbells": {
+   "cover_crate": {
+    "scale": [
+     1.872,
+     1.441,
+     0.961
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.25,
+     1.01,
+     0.64
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.08,
+     0.891,
+     0.552
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.33,
+     0.9,
+     0.68
+    ]
+   }
+  },
+  "hoop": {
+   "cover_tarp": {
+    "scale": [
+     1.87,
+     2.864,
+     1.769
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.29,
+     2.9,
+     2.17
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.863,
+     2.867,
+     1.762
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.24,
+     2.9,
+     2.12
+    ]
+   }
+  },
+  "punching_bag": {
+   "cover_crate": {
+    "scale": [
+     2.247,
+     1.083,
+     1.826
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.5,
+     0.76,
+     1.21
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.296,
+     0.67,
+     1.049
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.59,
+     0.68,
+     1.29
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.291,
+     0.67,
+     1.045
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.55,
+     0.68,
+     1.26
+    ]
+   }
+  },
+  "bowling": {
+   "cover_box": {
+    "scale": [
+     1.178,
+     0.893,
+     1.006
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.59,
+     0.44,
+     0.48
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.669,
+     0.769,
+     0.801
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.6,
+     0.47,
+     0.51
+    ]
+   }
+  },
+  "pinball": {
+   "cover_tarp": {
+    "scale": [
+     1.897,
+     2.093,
+     1.295
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.33,
+     2.12,
+     1.59
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.89,
+     2.095,
+     1.289
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.27,
+     2.12,
+     1.55
+    ]
+   }
+  },
+  "lego_bin": {
+   "cover_box": {
+    "scale": [
+     1.069,
+     1.197,
+     0.952
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.59,
+     0.46
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.608,
+     1.031,
+     0.758
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.55,
+     0.62,
+     0.48
+    ]
+   }
+  },
+  "dollhouse": {
+   "cover_crate": {
+    "scale": [
+     1.451,
+     1.425,
+     0.801
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.97,
+     1.0,
+     0.53
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.837,
+     0.881,
+     0.46
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     0.89,
+     0.56
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.833,
+     0.882,
+     0.459
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.0,
+     0.89,
+     0.55
+    ]
+   }
+  },
+  "rocking_horse": {
+   "cover_crate": {
+    "scale": [
+     1.872,
+     1.598,
+     0.766
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.25,
+     1.12,
+     0.51
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.08,
+     0.988,
+     0.44
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.33,
+     1.0,
+     0.54
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.075,
+     0.989,
+     0.438
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.29,
+     1.0,
+     0.53
+    ]
+   }
+  },
+  "plush_pile": {
+   "cover_crate": {
+    "scale": [
+     1.498,
+     1.024,
+     1.458
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.0,
+     0.72,
+     0.97
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.864,
+     0.633,
+     0.838
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.06,
+     0.64,
+     1.03
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.86,
+     0.634,
+     0.834
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     0.64,
+     1.0
+    ]
+   }
+  },
+  "kid_bike": {
+   "cover_crate": {
+    "scale": [
+     1.872,
+     1.34,
+     1.161
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.25,
+     0.94,
+     0.77
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.08,
+     0.828,
+     0.667
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.33,
+     0.84,
+     0.82
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.075,
+     0.829,
+     0.664
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.29,
+     0.84,
+     0.8
+    ]
+   }
+  },
+  "handbag": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.685,
+     0.45
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.34,
+     0.22
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.66,
+     0.6,
+     0.714
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.41,
+     0.42,
+     0.23
+    ]
+   },
+   "cover_safe": {
+    "scale": [
+     0.669,
+     0.722,
+     1.004
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.043,
+    "size_m": [
+     0.35,
+     0.43,
+     0.53
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "fur_coat": {
+   "cover_crate": {
+    "scale": [
+     1.985,
+     3.029,
+     1.179
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.32,
+     2.12,
+     0.78
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     1.145,
+     1.872,
+     0.678
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.4,
+     1.9,
+     0.83
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.14,
+     1.874,
+     0.675
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.37,
+     1.9,
+     0.81
+    ]
+   }
+  },
+  "sneakers": {
+   "cover_box": {
+    "scale": [
+     0.857,
+     1.197,
+     0.812
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.43,
+     0.59,
+     0.39
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.859,
+     0.971,
+     1.375
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.68,
+     0.44
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     1.031,
+     0.647
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.62,
+     0.41
+    ]
+   }
+  },
+  "clothes_rack": {
+   "cover_tarp": {
+    "scale": [
+     1.498,
+     1.762,
+     0.976
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.84,
+     1.78,
+     1.2
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.492,
+     1.764,
+     0.972
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.79,
+     1.79,
+     1.17
+    ]
+   }
+  },
+  "wedding_dress": {
+   "cover_crate": {
+    "scale": [
+     1.498,
+     0.55,
+     0.846
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.0,
+     0.39,
+     0.56
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.864,
+     0.4,
+     0.486
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.06,
+     0.41,
+     0.6
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.86,
+     0.4,
+     0.484
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     0.4,
+     0.58
+    ]
+   }
+  },
+  "leather_jackets": {
+   "cover_box": {
+    "scale": [
+     1.611,
+     1.676,
+     1.563
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.81,
+     0.82,
+     0.75
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.915,
+     1.443,
+     1.245
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.82,
+     0.87,
+     0.79
+    ]
+   }
+  },
+  "cooler": {
+   "cover_crate": {
+    "scale": [
+     1.395,
+     1.425,
+     0.924
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.93,
+     1.0,
+     0.61
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.805,
+     0.881,
+     0.531
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.99,
+     0.89,
+     0.65
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.801,
+     0.882,
+     0.528
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.96,
+     0.89,
+     0.63
+    ]
+   }
+  },
+  "tires": {
+   "cover_crate": {
+    "scale": [
+     1.146,
+     1.603,
+     1.151
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.76,
+     1.12,
+     0.76
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.661,
+     0.991,
+     0.661
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.81,
+     1.0,
+     0.81
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.658,
+     0.992,
+     0.659
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.79,
+     1.0,
+     0.79
+    ]
+   }
+  },
+  "books": {
+   "cover_box": {
+    "scale": [
+     1.413,
+     1.199,
+     1.44
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.71,
+     0.59,
+     0.69
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.803,
+     1.033,
+     1.147
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.72,
+     0.62,
+     0.73
+    ]
+   }
+  },
+  "misc_tub": {
+   "cover_box": {
+    "scale": [
+     1.293,
+     1.436,
+     1.097
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.65,
+     0.71,
+     0.53
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.735,
+     1.237,
+     0.874
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.66,
+     0.75,
+     0.56
+    ]
+   }
+  },
+  "xmas": {
+   "cover_box": {
+    "scale": [
+     1.413,
+     1.247,
+     1.379
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.71,
+     0.61,
+     0.66
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.803,
+     1.074,
+     1.099
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.72,
+     0.65,
+     0.7
+    ]
+   }
+  },
+  "exercise_bike": {
+   "cover_tarp": {
+    "scale": [
+     1.217,
+     1.322,
+     0.675
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.49,
+     1.34,
+     0.83
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     1.212,
+     1.323,
+     0.673
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.46,
+     1.34,
+     0.81
+    ]
+   }
+  },
+  "magazines": {
+   "cover_box": {
+    "scale": [
+     0.824,
+     0.512,
+     0.712
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.41,
+     0.25,
+     0.34
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.753,
+     0.753,
+     1.205
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.47,
+     0.53,
+     0.38
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.38
+    ]
+   }
+  },
+  "dvds": {
+   "cover_box": {
+    "scale": [
+     1.06,
+     1.008,
+     1.075
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.53,
+     0.5,
+     0.52
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.602,
+     0.868,
+     0.856
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.53,
+     0.55
+    ]
+   }
+  },
+  "clothes_bags": {
+   "cover_crate": {
+    "scale": [
+     1.498,
+     1.037,
+     0.924
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     1.0,
+     0.73,
+     0.61
+    ]
+   },
+   "cover_tarp": {
+    "scale": [
+     0.864,
+     0.641,
+     0.531
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.06,
+     0.65,
+     0.65
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     0.86,
+     0.642,
+     0.528
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.0,
+    "size_m": [
+     1.03,
+     0.65,
+     0.63
+    ]
+   },
+   "cover_trashbag": {
+    "scale": [
+     1.186,
+     1.179,
+     1.897
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     0.7,
+     0.83,
+     1.14
+    ]
+   }
+  },
+  "old_mattress": {
+   "cover_tarp": {
+    "scale": [
+     2.052,
+     1.885,
+     1.893
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.52,
+     1.91,
+     2.32
+    ]
+   },
+   "cover_blanket": {
+    "scale": [
+     2.043,
+     1.886,
+     1.886
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.0,
+    "size_m": [
+     2.46,
+     1.91,
+     2.27
+    ]
+   }
+  },
+  "paint_cans": {
+   "cover_box": {
+    "scale": [
+     0.942,
+     0.615,
+     0.812
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.47,
+     0.3,
+     0.39
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.859,
+     0.859,
+     1.375
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.6,
+     0.44
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.6,
+     0.6,
+     0.647
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.54,
+     0.36,
+     0.41
+    ]
+   }
+  },
+  "hose": {
+   "cover_box": {
+    "scale": [
+     1.413,
+     0.79,
+     1.291
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.71,
+     0.39,
+     0.62
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.803,
+     0.68,
+     1.028
+    ],
+    "item_yaw": 90,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.72,
+     0.41,
+     0.66
+    ]
+   }
+  },
+  "office_boxes": {
+   "cover_box": {
+    "scale": [
+     1.081,
+     1.436,
+     0.935
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.54,
+     0.71,
+     0.45
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.614,
+     1.237,
+     0.745
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.55,
+     0.75,
+     0.48
+    ]
+   }
+  },
+  "broken_fan": {
+   "cover_box": {
+    "scale": [
+     1.157,
+     1.317,
+     0.483
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.02,
+    "size_m": [
+     0.58,
+     0.65,
+     0.23
+    ]
+   },
+   "cover_suitcase": {
+    "scale": [
+     0.925,
+     1.068,
+     0.818
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.58,
+     0.75,
+     0.26
+    ]
+   },
+   "cover_trunk": {
+    "scale": [
+     0.657,
+     1.134,
+     0.6
+    ],
+    "item_yaw": 0,
+    "item_offset_y": 0.03,
+    "size_m": [
+     0.59,
+     0.69,
+     0.38
+    ]
+   }
+  }
+ },
+ "lots": [
+  {
+   "id": "garage_overflow",
+   "title": "Garage overflow",
+   "subtitle": "22 items, 15 hidden in: cardboard box, locked safe, steamer trunk, wooden crate.",
+   "seed": 21,
+   "model": "lots/garage_overflow.json",
+   "note": "Pre-assembled lot: every item and container in locker-local coordinates. Nodes are named item_NN_<id> and cover_NN_<kind>_<id>.",
+   "layout": [
+    {
+     "item": "ladder",
+     "name": "Aluminium ladder",
+     "position": [
+      -0.25,
+      0.0,
+      -3.718
+     ],
+     "yaw": 0.8
+    },
+    {
+     "item": "motorcycle",
+     "name": "Motorcycle",
+     "position": [
+      0.15,
+      0.0,
+      -2.467
+     ],
+     "yaw": -3.6
+    },
+    {
+     "item": "dumbbells",
+     "name": "Dumbbell set & rack",
+     "position": [
+      -0.625,
+      0.0,
+      -1.58
+     ],
+     "yaw": -3.6,
+     "cover": {
+      "id": "cover_crate",
+      "scale": [
+       1.872,
+       1.441,
+       0.961
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "leather_jackets",
+     "name": "Leather jackets",
+     "position": [
+      0.81,
+      0.0,
+      -1.505
+     ],
+     "yaw": -2.9,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.915,
+       1.443,
+       1.245
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "books",
+     "name": "Boxes of books",
+     "position": [
+      0.81,
+      0.87,
+      -1.535
+     ],
+     "yaw": 2.1,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.803,
+       1.033,
+       1.147
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "misc_tub",
+     "name": "Tub of odds and ends",
+     "position": [
+      -0.875,
+      1.01,
+      -1.585
+     ],
+     "yaw": -0.8,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.293,
+       1.436,
+       1.097
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "xmas",
+     "name": "Box of holiday decorations",
+     "position": [
+      -0.95,
+      0.0,
+      -0.919
+     ],
+     "yaw": 2.0
+    },
+    {
+     "item": "drill_set",
+     "name": "Cordless power-tool set",
+     "position": [
+      -0.31,
+      0.0,
+      -0.91
+     ],
+     "yaw": 0.7,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.649,
+       1.031,
+       0.915
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "comics",
+     "name": "Long box of comics",
+     "position": [
+      0.81,
+      0.0,
+      -0.88
+     ],
+     "yaw": -3.4,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.649,
+       0.823,
+       0.712
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "dvds",
+     "name": "Box of DVDs",
+     "position": [
+      0.765,
+      1.49,
+      -1.49
+     ],
+     "yaw": 2.6,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.06,
+       1.008,
+       1.075
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "toolbox",
+     "name": "Steel toolbox",
+     "position": [
+      -0.954,
+      1.72,
+      -1.575
+     ],
+     "yaw": 3.3
+    },
+    {
+     "item": "turntable",
+     "name": "Turntable",
+     "position": [
+      -0.265,
+      1.01,
+      -1.535
+     ],
+     "yaw": 88.6,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.06,
+       0.45,
+       0.969
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "console",
+     "name": "Game console & controllers",
+     "position": [
+      0.77,
+      1.99,
+      -1.52
+     ],
+     "yaw": 3.2,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.6,
+       0.727
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "office_boxes",
+     "name": "File boxes of paperwork",
+     "position": [
+      -0.33,
+      0.62,
+      -0.875
+     ],
+     "yaw": 3.7,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.081,
+       1.436,
+       0.935
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "microwave",
+     "name": "Microwave",
+     "position": [
+      1.025,
+      0.0,
+      -4.105
+     ],
+     "yaw": 93.6,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.178,
+       0.881,
+       0.736
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "bowling",
+     "name": "Bowling balls & bag",
+     "position": [
+      -1.0,
+      0.521,
+      -0.945
+     ],
+     "yaw": 0.2
+    },
+    {
+     "item": "magazines",
+     "name": "Bundle of old magazines",
+     "position": [
+      1.005,
+      0.0,
+      -3.58
+     ],
+     "yaw": 1.6,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       0.824,
+       0.512,
+       0.712
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "broken_fan",
+     "name": "Broken box fan",
+     "position": [
+      0.94,
+      0.0,
+      -0.535
+     ],
+     "yaw": 3.9,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.157,
+       1.317,
+       0.483
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "mixer",
+     "name": "Stand mixer",
+     "position": [
+      -0.265,
+      1.23,
+      -1.415
+     ],
+     "yaw": 0.3,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       0.942,
+       0.924,
+       0.564
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "sneakers",
+     "name": "Stack of sneaker boxes",
+     "position": [
+      1.032,
+      0.0,
+      -3.185
+     ],
+     "yaw": 92.3
+    },
+    {
+     "item": "cash_can",
+     "name": "Coffee can of cash",
+     "position": [
+      -1.11,
+      0.0,
+      -2.805
+     ],
+     "yaw": 3.9,
+     "cover": {
+      "id": "cover_safe",
+      "scale": [
+       0.55,
+       0.55,
+       0.55
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.033
+     }
+    },
+    {
+     "item": "cards",
+     "name": "Sports card box",
+     "position": [
+      -0.325,
+      1.68,
+      -1.404
+     ],
+     "yaw": 87.7
+    }
+   ]
+  },
+  {
+   "id": "retiree_estate",
+   "title": "Retiree estate",
+   "subtitle": "22 items, 11 hidden in: cardboard box, locked safe, moving blanket, steamer trunk, suitcase, wooden crate.",
+   "seed": 2,
+   "model": "lots/retiree_estate.json",
+   "note": "Pre-assembled lot: every item and container in locker-local coordinates. Nodes are named item_NN_<id> and cover_NN_<kind>_<id>.",
+   "layout": [
+    {
+     "item": "old_mattress",
+     "name": "Stained mattress",
+     "position": [
+      -0.324,
+      0.0,
+      -3.45
+     ],
+     "yaw": -1.2
+    },
+    {
+     "item": "lamp",
+     "name": "Floor lamp",
+     "position": [
+      -0.891,
+      0.0,
+      -2.09
+     ],
+     "yaw": -3.6
+    },
+    {
+     "item": "globe",
+     "name": "Antique globe",
+     "position": [
+      0.82,
+      0.0,
+      -2.03
+     ],
+     "yaw": -1.3,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.672,
+       2.154,
+       1.74
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "grandfather_clock",
+     "name": "Grandfather clock",
+     "position": [
+      -0.104,
+      0.0,
+      -2.223
+     ],
+     "yaw": 2.5
+    },
+    {
+     "item": "cooler",
+     "name": "Camping gear & cooler",
+     "position": [
+      -0.77,
+      0.0,
+      -1.335
+     ],
+     "yaw": 0.6,
+     "cover": {
+      "id": "cover_blanket",
+      "scale": [
+       0.801,
+       0.882,
+       0.528
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.0
+     }
+    },
+    {
+     "item": "books",
+     "name": "Boxes of books",
+     "position": [
+      0.755,
+      1.06,
+      -2.055
+     ],
+     "yaw": -0.4,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.413,
+       1.199,
+       1.44
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "tiffany_lamp",
+     "name": "Stained-glass lamp",
+     "position": [
+      0.895,
+      0.0,
+      -1.2
+     ],
+     "yaw": 4.0,
+     "cover": {
+      "id": "cover_safe",
+      "scale": [
+       1.341,
+       1.514,
+       1.328
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.091
+     }
+    },
+    {
+     "item": "painting",
+     "name": "Framed painting",
+     "position": [
+      -0.68,
+      0.0,
+      -0.77
+     ],
+     "yaw": 2.2,
+     "cover": {
+      "id": "cover_crate",
+      "scale": [
+       1.567,
+       1.603,
+       0.55
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "clothes_bags",
+     "name": "Bags of old clothes",
+     "position": [
+      0.996,
+      0.0,
+      -4.0
+     ],
+     "yaw": 92.2
+    },
+    {
+     "item": "tires",
+     "name": "Stack of old tires",
+     "position": [
+      0.906,
+      0.0,
+      -3.244
+     ],
+     "yaw": 3.7
+    },
+    {
+     "item": "xmas",
+     "name": "Box of holiday decorations",
+     "position": [
+      0.75,
+      1.65,
+      -2.019
+     ],
+     "yaw": 3.1
+    },
+    {
+     "item": "hose",
+     "name": "Garden hose & tools",
+     "position": [
+      0.063,
+      0.0,
+      -1.65
+     ],
+     "yaw": -0.0
+    },
+    {
+     "item": "dvds",
+     "name": "Box of DVDs",
+     "position": [
+      0.215,
+      0.0,
+      -1.04
+     ],
+     "yaw": -3.3,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.06,
+       1.008,
+       1.075
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "misc_tub",
+     "name": "Tub of odds and ends",
+     "position": [
+      0.975,
+      0.0,
+      -0.577
+     ],
+     "yaw": -0.2
+    },
+    {
+     "item": "sword",
+     "name": "Antique sword",
+     "position": [
+      -0.675,
+      1.12,
+      -0.721
+     ],
+     "yaw": 3.9
+    },
+    {
+     "item": "paint_cans",
+     "name": "Old paint cans",
+     "position": [
+      0.22,
+      0.5,
+      -1.03
+     ],
+     "yaw": 1.9,
+     "cover": {
+      "id": "cover_suitcase",
+      "scale": [
+       0.859,
+       0.859,
+       1.375
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "broken_fan",
+     "name": "Broken box fan",
+     "position": [
+      0.845,
+      0.91,
+      -1.16
+     ],
+     "yaw": -3.1,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.657,
+       1.134,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "vase",
+     "name": "Porcelain vase",
+     "position": [
+      0.22,
+      1.1,
+      -1.01
+     ],
+     "yaw": -2.7,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.928,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "magazines",
+     "name": "Bundle of old magazines",
+     "position": [
+      0.185,
+      1.66,
+      -1.01
+     ],
+     "yaw": -1.8,
+     "cover": {
+      "id": "cover_suitcase",
+      "scale": [
+       0.753,
+       0.753,
+       1.205
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "office_boxes",
+     "name": "File boxes of paperwork",
+     "position": [
+      0.98,
+      0.9,
+      -3.36
+     ],
+     "yaw": -2.6
+    },
+    {
+     "item": "bust",
+     "name": "Marble bust",
+     "position": [
+      0.865,
+      1.6,
+      -1.17
+     ],
+     "yaw": 2.0,
+     "cover": {
+      "id": "cover_suitcase",
+      "scale": [
+       0.696,
+       0.971,
+       1.113
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "typewriter",
+     "name": "Vintage typewriter",
+     "position": [
+      1.025,
+      1.5,
+      -3.35
+     ],
+     "yaw": -2.9
+    }
+   ]
+  },
+  {
+   "id": "collectors_stash",
+   "title": "Collector's stash",
+   "subtitle": "22 items, 17 hidden in: cardboard box, locked safe, moving blanket, steamer trunk, suitcase, tarp, wooden crate.",
+   "seed": 5,
+   "model": "lots/collectors_stash.json",
+   "note": "Pre-assembled lot: every item and container in locker-local coordinates. Nodes are named item_NN_<id> and cover_NN_<kind>_<id>.",
+   "layout": [
+    {
+     "item": "pinball",
+     "name": "Pinball machine",
+     "position": [
+      0.065,
+      0.0,
+      -3.605
+     ],
+     "yaw": 1.7,
+     "cover": {
+      "id": "cover_tarp",
+      "scale": [
+       1.897,
+       2.093,
+       1.295
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.0
+     }
+    },
+    {
+     "item": "grandfather_clock",
+     "name": "Grandfather clock",
+     "position": [
+      0.795,
+      0.0,
+      -2.37
+     ],
+     "yaw": -4.4,
+     "cover": {
+      "id": "cover_blanket",
+      "scale": [
+       0.744,
+       2.205,
+       0.63
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.0
+     }
+    },
+    {
+     "item": "globe",
+     "name": "Antique globe",
+     "position": [
+      -0.83,
+      0.0,
+      -2.33
+     ],
+     "yaw": 3.3,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       1.672,
+       2.154,
+       1.74
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "mirror",
+     "name": "Ornate mirror",
+     "position": [
+      0.67,
+      0.0,
+      -1.655
+     ],
+     "yaw": -3.0,
+     "cover": {
+      "id": "cover_tarp",
+      "scale": [
+       0.929,
+       1.101,
+       0.4
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.0
+     }
+    },
+    {
+     "item": "chandelier",
+     "name": "Crystal chandelier",
+     "position": [
+      -0.84,
+      1.06,
+      -2.38
+     ],
+     "yaw": 3.9,
+     "cover": {
+      "id": "cover_tarp",
+      "scale": [
+       0.667,
+       0.881,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.0
+     }
+    },
+    {
+     "item": "silverware",
+     "name": "Silverware chest",
+     "position": [
+      -0.91,
+      0.0,
+      -1.47
+     ],
+     "yaw": 1.9,
+     "cover": {
+      "id": "cover_safe",
+      "scale": [
+       1.326,
+       1.08,
+       1.434
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.065
+     }
+    },
+    {
+     "item": "sword",
+     "name": "Antique sword",
+     "position": [
+      0.67,
+      0.0,
+      -1.16
+     ],
+     "yaw": -1.6,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       1.271,
+       0.6,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "painting",
+     "name": "Framed painting",
+     "position": [
+      -0.73,
+      0.0,
+      -0.82
+     ],
+     "yaw": 0.1,
+     "cover": {
+      "id": "cover_crate",
+      "scale": [
+       1.567,
+       1.603,
+       0.55
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "comics",
+     "name": "Long box of comics",
+     "position": [
+      0.82,
+      0.0,
+      -0.71
+     ],
+     "yaw": 1.6,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.937,
+       0.709,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "coins",
+     "name": "Coin collection",
+     "position": [
+      -0.095,
+      0.0,
+      -2.54
+     ],
+     "yaw": 0.8,
+     "cover": {
+      "id": "cover_suitcase",
+      "scale": [
+       0.815,
+       0.815,
+       1.304
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "tiffany_lamp",
+     "name": "Stained-glass lamp",
+     "position": [
+      -0.268,
+      0.0,
+      -1.622
+     ],
+     "yaw": 2.9
+    },
+    {
+     "item": "model_train",
+     "name": "Model train set",
+     "position": [
+      0.7,
+      0.43,
+      -0.728
+     ],
+     "yaw": 3.3
+    },
+    {
+     "item": "toy_robot",
+     "name": "Vintage tin robot",
+     "position": [
+      0.37,
+      0.36,
+      -1.16
+     ],
+     "yaw": 1.2,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.6,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "cash_can",
+     "name": "Coffee can of cash",
+     "position": [
+      0.09,
+      0.0,
+      -0.63
+     ],
+     "yaw": 90.9,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.6,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "cards",
+     "name": "Sports card box",
+     "position": [
+      -0.93,
+      0.65,
+      -1.36
+     ],
+     "yaw": 3.0,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.6,
+       0.6
+      ],
+      "item_yaw_in_cover": 90,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "pearls",
+     "name": "Pearl necklace",
+     "position": [
+      -0.83,
+      1.12,
+      -0.81
+     ],
+     "yaw": -3.8,
+     "cover": {
+      "id": "cover_trunk",
+      "scale": [
+       0.6,
+       0.6,
+       0.6
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "vinyl",
+     "name": "Crate of vinyl records",
+     "position": [
+      0.4,
+      0.72,
+      -1.156
+     ],
+     "yaw": 2.4
+    },
+    {
+     "item": "typewriter",
+     "name": "Vintage typewriter",
+     "position": [
+      -0.145,
+      0.0,
+      -2.075
+     ],
+     "yaw": -2.8,
+     "cover": {
+      "id": "cover_box",
+      "scale": [
+       0.824,
+       0.809,
+       0.739
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.02
+     }
+    },
+    {
+     "item": "gold_bars",
+     "name": "Gold bullion",
+     "position": [
+      -0.085,
+      0.57,
+      -2.555
+     ],
+     "yaw": -1.3,
+     "cover": {
+      "id": "cover_safe",
+      "scale": [
+       0.637,
+       0.55,
+       0.746
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.033
+     }
+    },
+    {
+     "item": "jewelry_box",
+     "name": "Jewelry box",
+     "position": [
+      0.395,
+      1.068,
+      -1.14
+     ],
+     "yaw": -3.4,
+     "cover": {
+      "id": "cover_suitcase",
+      "scale": [
+       0.626,
+       0.626,
+       1.001
+      ],
+      "item_yaw_in_cover": 0,
+      "item_offset_y": 0.03
+     }
+    },
+    {
+     "item": "bonds",
+     "name": "Envelope of savings bonds",
+     "position": [
+      -0.325,
+      0.0,
+      -1.296
+     ],
+     "yaw": 0.6
+    },
+    {
+     "item": "watch",
+     "name": "Luxury wristwatch",
+     "position": [
+      0.248,
+      1.508,
+      -1.093
+     ],
+     "yaw": -1.9
+    }
+   ]
+  }
+ ]
+}

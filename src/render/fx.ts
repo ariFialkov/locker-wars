@@ -1,6 +1,19 @@
 /** Cheap particle bursts: sparks, dust, coins. */
 import * as THREE from 'three';
 
+let dot: THREE.Texture | null = null;
+/** Soft round sprite so particles read as dust and sparks, not squares. */
+function softDot(): THREE.Texture {
+  if (dot) return dot;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d')!;
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.45, 'rgba(255,255,255,.75)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  dot = new THREE.CanvasTexture(c); dot.colorSpace = THREE.SRGBColorSpace;
+  return dot;
+}
+
 interface P { pos: THREE.Vector3; vel: THREE.Vector3; life: number; max: number; size: number }
 
 class Burst {
@@ -12,7 +25,7 @@ class Burst {
     this.gravity = gravity;
     this.geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(max * 3), 3));
     this.geo.setAttribute('alpha', new THREE.BufferAttribute(new Float32Array(max), 1));
-    const m = new THREE.PointsMaterial({ color, size, transparent: true, opacity: 0.95, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, sizeAttenuation: true });
+    const m = new THREE.PointsMaterial({ color, size, map: softDot(), transparent: true, opacity: 0.95, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, sizeAttenuation: true });
     this.points = new THREE.Points(this.geo, m);
     this.points.frustumCulled = false;
     scene.add(this.points);
@@ -54,5 +67,7 @@ export class FX {
   dustAt(p: THREE.Vector3, n = 40): void { this.dust.emit(p, n, 0.5, 2.2, 3, 0.8); }
   coinsAt(p: THREE.Vector3, n = 30): void { this.coins.emit(p, n, 2.6, 1.4, 1.2, 1.5); }
   glitterAt(p: THREE.Vector3, n = 40): void { this.glitter.emit(p, n, 0.6, 1.2, 1.5, 1); }
+  /** One particle in every burst, far below the floor, so their shaders compile during loading. */
+  warmup(at: THREE.Vector3): void { for (const b of [this.sparks, this.dust, this.coins, this.glitter]) b.emit(at, 1, 0, 0.15, 0, 0); this.update(0); }
   update(dt: number): void { this.sparks.update(dt); this.dust.update(dt); this.coins.update(dt); this.glitter.update(dt); }
 }

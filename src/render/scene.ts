@@ -14,6 +14,8 @@ export class GameScene {
   readonly workLight: THREE.PointLight;
   readonly interiorBulb: THREE.PointLight;
   readonly quality: Quality;
+  /** Repaint the unit-number sign above the door. */
+  readonly setUnitNumber: (label: string) => void;
   private lastT = performance.now();
 
   constructor(canvas: HTMLCanvasElement, quality: Quality) {
@@ -61,7 +63,7 @@ export class GameScene {
     this.interiorBulb.position.set(0, LOCKER.height - 0.2, -LOCKER.depth / 2);
     this.scene.add(this.interiorBulb);
 
-    buildEnvironment(this.scene, quality);
+    this.setUnitNumber = buildEnvironment(this.scene, quality).setUnitNumber;
     this.resize();
     window.addEventListener('resize', () => this.resize());
   }
@@ -119,7 +121,7 @@ function asphaltTexture(): THREE.CanvasTexture {
   return t;
 }
 
-export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
+export function buildEnvironment(scene: THREE.Scene, quality: Quality): { setUnitNumber: (label: string) => void } {
   const W = LOCKER.width, D = LOCKER.depth, H = LOCKER.height;
   const wallT = 0.15;
 
@@ -187,7 +189,9 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
     sign.position.set(i * (W + 0.6) - W / 2 + 0.35, H - 0.35, 0.12); scene.add(sign);
   }
   // our unit's number sign
-  const numTex = canvasTexture(256, 128, (ctx) => { ctx.fillStyle = '#f2e9d8'; ctx.fillRect(0, 0, 256, 128); ctx.fillStyle = '#1a1a1a'; ctx.font = 'bold 84px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('B-214', 128, 66); });
+  let signCtx: CanvasRenderingContext2D | null = null;
+  const paintSign = (label: string) => { const c = signCtx!; c.fillStyle = '#f2e9d8'; c.fillRect(0, 0, 256, 128); c.fillStyle = '#1a1a1a'; c.font = 'bold 84px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, 128, 66); };
+  const numTex = canvasTexture(256, 128, (ctx) => { signCtx = ctx; paintSign('B-214'); });
   const ourSign = mesh(new THREE.BoxGeometry(0.5, 0.25, 0.02), new THREE.MeshStandardMaterial({ map: numTex, roughness: 0.6 }));
   ourSign.position.set(W / 2 + 0.55, H - 0.3, 0.09); scene.add(ourSign);
 
@@ -214,4 +218,5 @@ export function buildEnvironment(scene: THREE.Scene, quality: Quality): void {
   const lid = box(1.85, 0.08, 1.05, 0x255430, { rough: 0.6, metal: 0.3 }); lid.position.set(-6.5, 1.24, 1.2); scene.add(lid);
   const pallet = box(1.2, 0.12, 1.0, 0x9a7b4f); pallet.position.set(6.2, 0.06, 0.9); scene.add(pallet);
   const cone1 = mesh(new THREE.ConeGeometry(0.18, 0.5, 12), mat(0xff7b1a, { rough: 0.6 })); cone1.position.set(5.6, 0.25, 2.2); scene.add(cone1);
+  return { setUnitNumber: (label: string) => { paintSign(label); numTex.needsUpdate = true; } };
 }

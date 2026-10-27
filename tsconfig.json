@@ -10,7 +10,8 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["vite/client", "vite-plugin-pwa/client"]
+    "resolveJsonModule": true,
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"]
   },
   "include": ["src", "test", "tools", "vite.config.ts"]
 }

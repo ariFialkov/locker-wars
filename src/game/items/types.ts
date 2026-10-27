@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { RNG } from '../../core/rng';
+import { packCoversFor } from '../../pack/manifest';
 
 export type Category =
   | 'furniture' | 'appliances' | 'electronics' | 'tools' | 'vehicles' | 'instruments'
@@ -7,7 +8,7 @@ export type Category =
 
 export type SizeClass = 'S' | 'M' | 'L' | 'XL';
 
-export type CoverKind = 'box' | 'crate' | 'safe' | 'suitcase' | 'bag' | 'tarp' | 'blanket';
+export type CoverKind = 'box' | 'crate' | 'safe' | 'suitcase' | 'bag' | 'tarp' | 'blanket' | 'trunk';
 
 export interface ItemDef {
   id: string;
@@ -43,7 +44,14 @@ export const CATEGORY_ICON: Record<Category, Category> = {
   collectibles: 'collectibles', valuables: 'valuables', art: 'art', sports: 'sports', toys: 'toys', clothing: 'clothing', junk: 'junk',
 };
 
+/** Containers that can hide an item: the pack's ray-tested fits, else the old size heuristic. */
 export function coversFor(def: ItemDef): CoverKind[] {
+  const fromPack = packCoversFor(def.id);
+  if (fromPack.length) return fromPack;
+  return heuristicCovers(def);
+}
+
+function heuristicCovers(def: ItemDef): CoverKind[] {
   const out: CoverKind[] = [];
   if (def.size === 'S') {
     out.push('box', 'suitcase');

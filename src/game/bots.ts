@@ -21,6 +21,8 @@ export interface Bot {
   intro: string;
   /** How the auctioneer points them out: "SOLD to the man in the red cap". */
   look: string;
+  /** Asset-pack characters that play this rival (Rosa & Ray are one bidding team, two models). */
+  pack: string[];
 }
 
 export const BOTS: Bot[] = [
@@ -33,6 +35,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Enjoy the junk, rookie.', 'You way overpaid.', 'Pfft.'],
     intro: 'Bids loud, bids early, rarely thinks.',
     look: 'the big man in the red cap',
+    pack: ['big_dave'],
   },
   {
     id: 'marisol', name: 'Marisol', short: 'Marisol', color: 0x16a085, hat: 'none', skin: 0xc68642,
@@ -43,6 +46,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Hope you know something I don\'t.', 'Interesting choice.'],
     intro: 'Cool, precise, and never overpays. Probably.',
     look: 'the lady in teal',
+    pack: ['marisol'],
   },
   {
     id: 'prof', name: 'The Professor', short: 'Prof', color: 0x8e6b3d, hat: 'fedora', skin: 0xf1c27d,
@@ -53,6 +57,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Bold. Foolish, but bold.', 'The numbers disagree with you.'],
     intro: 'Bids slow, bids smart, lectures afterwards.',
     look: 'the gentleman in the fedora',
+    pack: ['professor'],
   },
   {
     id: 'kenny', name: 'Kenny Ka-Ching', short: 'Kenny', color: 0xf1c40f, hat: 'visor', skin: 0xd9a066,
@@ -63,6 +68,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Ka-CHING for me later!', 'Yikes.'],
     intro: 'Jump-bids for fun. Loves the sound of his own catchphrase.',
     look: 'the fella in the yellow visor',
+    pack: ['kenny'],
   },
   {
     id: 'lou', name: 'Auntie Lou', short: 'Lou', color: 0x8e44ad, hat: 'beanie', skin: 0x8d5524,
@@ -73,6 +79,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Bless your heart.', 'Oh, sweetie.'],
     intro: 'Cheap, grumbly, and somehow always profitable.',
     look: 'the lady in the purple beanie',
+    pack: ['auntie_lou'],
   },
   {
     id: 'rick', name: 'Slick Rick', short: 'Rick', color: 0x2c3e50, hat: 'cowboy', skin: 0xe8beac,
@@ -83,6 +90,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Sucker bet.', 'Good luck with that.'],
     intro: 'Sits back, then swoops in late.',
     look: 'the cowboy in the back',
+    pack: ['slick_rick'],
   },
   {
     id: 'rosa', name: 'Rosa & Ray', short: 'Rosa', color: 0x27ae60, hat: 'cap', skin: 0xffdbac,
@@ -93,6 +101,7 @@ export const BOTS: Bot[] = [
     loseLines: ['Good luck!', 'Ray says you overpaid.'],
     intro: 'Bid as a team. Argue as a team.',
     look: 'the couple in green',
+    pack: ['rosa', 'ray'],
   },
 ];
 

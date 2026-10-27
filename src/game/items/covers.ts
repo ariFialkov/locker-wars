@@ -6,13 +6,13 @@ import { g } from '../../core/config';
 import { box, cyl, sphere, torus, group, at, rot, mat, mesh, WOODS, vary } from './shapes';
 
 export const COVER_LABEL: Record<CoverKind, string> = {
-  box: 'Cardboard box', crate: 'Wooden crate', safe: 'Locked safe', suitcase: 'Suitcase', bag: 'Trash bag', tarp: 'Tarp-covered lump', blanket: 'Blanket-covered shape',
+  box: 'Cardboard box', crate: 'Wooden crate', safe: 'Locked safe', suitcase: 'Suitcase', bag: 'Trash bag', tarp: 'Tarp-covered lump', blanket: 'Blanket-covered shape', trunk: 'Steamer trunk',
 };
 
 
 /** Rough guess a buyer would assign to a concealed shape of this kind/size. Drives rival valuations only. */
 export function coverGuess(kind: CoverKind, size: SizeClass): number {
-  const base: Record<CoverKind, number> = { box: 60, crate: 200, safe: 1200, suitcase: 110, bag: 30, tarp: 240, blanket: 140 };
+  const base: Record<CoverKind, number> = { box: 60, crate: 200, safe: 1200, suitcase: 110, bag: 30, tarp: 240, blanket: 140, trunk: 320 };
   const sizeMul: Record<SizeClass, number> = { S: 1, M: 1.8, L: 3, XL: 5 };
   return g(base[kind] * (kind === 'tarp' || kind === 'blanket' ? sizeMul[size] : 1));
 }
@@ -23,6 +23,7 @@ export function coverDims(rng: RNG, kind: CoverKind, size: SizeClass): [number, 
     case 'crate': return [rng.range(0.6, 0.9), rng.range(0.5, 0.8), rng.range(0.5, 0.7)];
     case 'safe': return [rng.range(0.4, 0.55), rng.range(0.45, 0.7), rng.range(0.4, 0.5)];
     case 'suitcase': return [rng.range(0.5, 0.7), rng.range(0.4, 0.6), rng.range(0.22, 0.3)];
+    case 'trunk': return [rng.range(0.8, 0.95), rng.range(0.55, 0.65), rng.range(0.55, 0.65)];
     case 'bag': return [rng.range(0.5, 0.7), rng.range(0.4, 0.55), rng.range(0.45, 0.6)];
     case 'tarp':
     case 'blanket': {
@@ -106,6 +107,7 @@ export function buildCover(rng: RNG, kind: CoverKind, dims: [number, number, num
       g.add(handle);
       return g;
     }
+    case 'trunk':
     case 'suitcase': {
       const c = vary(rng, rng.pick([0x3e2a1a, 0x1a1a1a, 0x7a1f1f, 0x2b4a7a, 0xb0a080]), 0.06);
       const g = group(box(w, h, d, c, { rough: 0.55 }));

@@ -12,6 +12,7 @@ import { g } from '../core/config';
 import { ITEM_BANK, ITEM_BY_ID, FLEX_ITEM_IDS } from './items/bank';
 import { coversFor, type Category, type CoverKind, type ItemDef, type SizeClass } from './items/types';
 import { coverDims, coverGuess } from './items/covers';
+import { coverFit } from '../pack/manifest';
 
 export const LOCKER = { width: 3.4, depth: 3.2, height: 2.6 };
 
@@ -29,7 +30,25 @@ export const THEMES: Theme[] = [
   { id: 'mystery', name: 'Mystery unit', blurb: 'Nobody remembers who rented this one.', bias: {}, count: [8, 16], hiddenShare: [0.45, 0.65] },
 ];
 
-export interface Cover { kind: CoverKind; size: SizeClass; dims: [number, number, number] }
+/** fitItem: the item the container was sized around (its pack cover fit sets the container's scale). */
+export interface Cover { kind: CoverKind; size: SizeClass; dims: [number, number, number]; fitItem: string }
+
+const SMALL_KINDS: CoverKind[] = ['box', 'safe', 'suitcase', 'bag', 'trunk'];
+
+/** Container size for hiding `def` in `kind`: the pack's ray-tested fit, else the old procedural guess. */
+function coverFor(rng: RNG, def: ItemDef, kind: CoverKind): Cover {
+  const fit = coverFit(def.id, kind);
+  const dims: [number, number, number] = fit ? [fit.size_m[0], fit.size_m[1], fit.size_m[2]] : coverDims(rng, kind, def.size);
+  return { kind, size: def.size, dims, fitItem: def.id };
+}
+
+/** A small container holding a flexible-value item: the residual absorber every locker needs. */
+function absorberCover(rng: RNG): Cover {
+  const flex = FLEX_ITEM_IDS.map((id) => ITEM_BY_ID[id]);
+  const def = rng.pick(flex);
+  const kinds = coversFor(def).filter((k) => SMALL_KINDS.includes(k));
+  return coverFor(rng, def, kinds.length ? rng.pick(kinds) : 'box');
+}
 
 export interface PlacedItem {
   uid: string;
@@ -103,13 +122,9 @@ function generateLockerRaw(sessionSeed: string, number: number, variant: number)
   defs.forEach((def, i) => {
     const instSeed = Math.floor(rng.next() * 1e9);
     if (hiddenIdx.has(i)) {
-      const covers = coversFor(def);
-      let kind = rng.pick(covers);
-      // A concealed thing's cover size is what the buyer sees; keep it honest to the size class.
-      let size: SizeClass = def.size;
-      if (kind === 'box' || kind === 'safe' || kind === 'suitcase' || kind === 'bag') { size = 'S'; smallHidden++; }
-      const dims = coverDims(rng, kind, size);
-      items.push({ uid: `h${i}`, hidden: true, cover: { kind, size, dims }, x: 0, y: 0, z: 0, rotY: 0, fp: dims, row: 1, seed: instSeed });
+      const cover = coverFor(rng, def, rng.pick(coversFor(def)));
+      if (cover.size === 'S') smallHidden++;
+      items.push({ uid: `h${i}`, hidden: true, cover, x: 0, y: 0, z: 0, rotY: 0, fp: cover.dims, row: 1, seed: instSeed });
     } else {
       const baseValue = niceValue(rollValue(rng, def));
       items.push({ uid: `v${i}`, hidden: false, def, baseValue, x: 0, y: 0, z: 0, rotY: 0, fp: def.footprint, row: 1, seed: instSeed });
@@ -117,9 +132,8 @@ function generateLockerRaw(sessionSeed: string, number: number, variant: number)
   });
   if (smallHidden === 0) {
     // guarantee a small container (it is the residual absorber for extreme outcomes)
-    const kind: CoverKind = rng.pick(['box', 'safe', 'suitcase']);
-    const dims = coverDims(rng, kind, 'S');
-    items.push({ uid: 'hx', hidden: true, cover: { kind, size: 'S', dims }, x: 0, y: 0, z: 0, rotY: 0, fp: dims, row: 0, seed: Math.floor(rng.next() * 1e9) });
+    const cover = absorberCover(rng);
+    items.push({ uid: 'hx', hidden: true, cover, x: 0, y: 0, z: 0, rotY: 0, fp: cover.dims, row: 0, seed: Math.floor(rng.next() * 1e9) });
   }
 
   const placed = pack(rng, items);
@@ -151,8 +165,8 @@ function pack(rng: RNG, items: PlacedItem[]): PlacedItem[] {
 
   for (const it of items) {
     let [w, h, d] = it.fp;
-    // draped covers spread at the floor: reserve room for the skirt
-    if (it.hidden && (it.cover!.kind === 'tarp' || it.cover!.kind === 'blanket')) { w *= 1.12; d *= 1.12; }
+    // procedural drapes flare at the floor (the pack's drape models already include it): reserve room for the skirt
+    if (it.hidden && (it.cover!.kind === 'tarp' || it.cover!.kind === 'blanket') && !coverFit(it.cover!.fitItem, it.cover!.kind)) { w *= 1.12; d *= 1.12; }
     let rotY = 0;
     if (d > w * 1.4 && d > 1.0) { [w, d] = [d, w]; rotY = Math.PI / 2; }
     rotY += rng.range(-0.12, 0.12);
@@ -184,7 +198,7 @@ function pack(rng: RNG, items: PlacedItem[]): PlacedItem[] {
         const z = row.z + rng.range(-0.05, 0.05) + (row.row === 0 ? 0 : Math.max(0, row.maxD - d) * 0.3);
         row.cursor = x + wRot / 2;
         out.push({ ...it, x, y: 0, z, rotY, fp: [w, h, d], row: row.row });
-        const stackable = it.hidden ? it.cover!.kind === 'crate' || it.cover!.kind === 'box' || it.cover!.kind === 'safe' : !!it.def?.stackable;
+        const stackable = it.hidden ? ['crate', 'box', 'safe', 'trunk'].includes(it.cover!.kind) : !!it.def?.stackable;
         if (stackable && h < 1.4) surfaces.push({ x, z, y: h, w: w * 0.9, d: d * 0.9, used: false });
         if (stackable && h < 0.7 && w > 1.2) surfaces.push({ x: x + w * 0.3, z, y: h, w: w * 0.4, d: d * 0.9, used: false }, { x: x - w * 0.3, z, y: h, w: w * 0.4, d: d * 0.9, used: false });
         done = true;
@@ -202,9 +216,8 @@ function pack(rng: RNG, items: PlacedItem[]): PlacedItem[] {
   }
   // Ensure at least one hidden small slot survived packing (residual absorber).
   if (!out.some((p) => p.hidden && p.cover!.size === 'S')) {
-    const kind: CoverKind = 'box';
-    const dims = coverDims(rng, kind, 'S');
-    out.push({ uid: 'hz', hidden: true, cover: { kind, size: 'S', dims }, x: 1.05, y: 0, z: -0.5, rotY: 0.2, fp: dims, row: 0, seed: Math.floor(rng.next() * 1e9) });
+    const cover = absorberCover(rng);
+    out.push({ uid: 'hz', hidden: true, cover, x: 1.05, y: 0, z: -0.5, rotY: 0.2, fp: cover.dims, row: 0, seed: Math.floor(rng.next() * 1e9) });
   }
   return out;
 }
@@ -331,7 +344,9 @@ function chooseHiddenDef(rng: RNG, slot: PlacedItem, amount: number, usedIds: Se
   const containing = pool.filter((d) => amount >= d.value[0] * 0.9 && amount <= d.value[1] * 1.1);
   if (isLast && size === 'S' && (containing.length === 0 || amount > g(3000))) {
     // Flexible-value items (cash, coins, jewelry...) can plausibly sit in any small container.
-    const flex = FLEX_ITEM_IDS.map((id) => ITEM_BY_ID[id]).filter((d) => kind !== 'safe' || d.valuable);
+    const allFlex = FLEX_ITEM_IDS.map((id) => ITEM_BY_ID[id]);
+    const fitting = allFlex.filter((d) => coversFor(d).includes(kind));
+    const flex = fitting.length ? fitting : allFlex;
     return rng.weighted(flex, (d) => (usedIds.has(d.id) ? 0.2 : 1) * (amount >= d.value[0] && amount <= d.value[1] ? 3 : 1));
   }
   if (containing.length > 0) return rng.weighted(containing, (d) => d.weight * (usedIds.has(d.id) ? 0.15 : 1));

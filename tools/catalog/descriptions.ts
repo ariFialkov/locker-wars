@@ -144,4 +144,5 @@ export const COVER_DESCRIPTIONS: Record<string, string> = {
   bag: 'Knotted trash bag. Hides soft goods such as clothing and plush toys.',
   tarp: 'Draped tarp. Can hide anything from a box fan to a motorcycle; its size is the only clue.',
   blanket: 'Moving blanket thrown over a medium or large shape.',
+  trunk: 'Strapped steamer trunk. Holds small and medium items, often valuables and collectibles.',
 };

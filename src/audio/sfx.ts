@@ -34,6 +34,9 @@ class SFX {
   }
 
   private get now(): number { return this.ctx?.currentTime ?? 0; }
+
+  /** The shared context and master bus, for recorded voice lines (null until unlocked). */
+  audio(): { ctx: AudioContext; out: GainNode } | null { return this.ctx && this.master ? { ctx: this.ctx, out: this.master } : null; }
   private ok(): { ctx: AudioContext; master: GainNode; noiseBuf: AudioBuffer } | null {
     return this.ctx && this.master && this.noiseBuf && this.enabled ? { ctx: this.ctx, master: this.master, noiseBuf: this.noiseBuf } : null;
   }

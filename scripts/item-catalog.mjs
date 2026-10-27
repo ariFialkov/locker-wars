@@ -1,12 +1,13 @@
-// Renders every item prefab and concealment, then writes a self-contained
-// catalog page (images embedded) to docs/item-catalog.html.
+// Writes a self-contained catalog page of every item and container (their asset
+// pack reveal cards embedded) to docs/item-catalog.html. Item data comes from the
+// game's own modules, loaded through a headless browser.
 // Usage: node scripts/item-catalog.mjs [outFile] [--fragment fragmentFile]
 // outFile is a standalone HTML document (served on GitHub Pages); the optional
 // fragment omits <!doctype>/<head> for hosts that wrap the page themselves.
 // Set CHROME_PATH if Playwright's own Chromium is not installed.
 import { createServer } from 'vite';
 import { chromium } from 'playwright';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 const args = process.argv.slice(2);
@@ -23,8 +24,9 @@ await page.goto('http://127.0.0.1:5199/tools/catalog/render.html');
 await page.waitForFunction(() => window.catalog, null, { timeout: 60000 });
 const meta = await page.evaluate(() => { const c = window.catalog; return { scale: c.scale, categories: c.categories, items: c.items, covers: c.covers, missing: c.missing }; });
 if (meta.missing.length) console.warn('missing descriptions:', meta.missing.join(', '));
-for (const it of meta.items) it.img = await page.evaluate((id) => window.catalog.renderItem(id), it.id);
-for (const cv of meta.covers) cv.img = await page.evaluate((k) => window.catalog.renderCover(k), cv.kind);
+const cardData = (rel) => 'data:image/webp;base64,' + readFileSync(new URL('../assets/pack/' + rel, import.meta.url)).toString('base64');
+for (const it of meta.items) it.img = cardData(`cards/${it.id}.webp`);
+for (const cv of meta.covers) cv.img = cardData(cv.card);
 await browser.close();
 await server.close();
 if (errors.length) { console.error(errors); process.exit(1); }
@@ -40,7 +42,7 @@ const priciest = [...meta.items].sort((a, b) => b.value[1] - a.value[1])[0];
 const card = (it) => {
   const flags = [it.luxury && '<span class="flag warn">Can be a replica</span>', it.valuable && '<span class="flag">Fits in a safe</span>', it.soft && '<span class="flag">Soft goods</span>', it.stackable && '<span class="flag">Stackable</span>'].filter(Boolean).join('');
   return `<article class="item" data-cat="${it.category}" data-search="${esc((it.name + ' ' + it.id + ' ' + it.description + ' ' + meta.categories[it.category]).toLowerCase())}">
-    <div class="plate"><img src="${it.img}" alt="${esc(it.name)} prefab render" width="240" height="240" loading="lazy" decoding="async"></div>
+    <div class="plate"><img src="${it.img}" alt="${esc(it.name)} card" width="300" height="400" loading="lazy" decoding="async"></div>
     <div class="body">
       <div class="head"><h3>${esc(it.name)}</h3><code>${esc(it.id)}</code></div>
       <div class="value"><span class="lab">Base value</span><b>${money(it.value[0])} – ${money(it.value[1])}</b></div>
@@ -101,10 +103,10 @@ section.cat { padding-top: 34px; }
 .cat-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 16px; }
 .cat-head h2 { font: 700 30px/1 var(--display); text-transform: uppercase; letter-spacing: .02em; margin: 0; }
 .cat-head span { font: 400 12px var(--mono); color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 14px; }
 .item { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
-.plate { background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--plate) 60%, var(--panel)), var(--plate)); aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; }
-.plate img { width: 86%; height: 86%; object-fit: contain; }
+.plate { background: #e9b48d; aspect-ratio: 3 / 4; max-width: 100%; overflow: hidden; }
+.plate img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .body { padding: 14px 16px 16px; display: grid; gap: 10px; align-content: start; flex: 1; }
 .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .head h3 { font: 700 21px/1.05 var(--display); letter-spacing: .01em; margin: 0; text-wrap: balance; }
@@ -130,7 +132,7 @@ dd { margin: 2px 0 0; font-size: 13px; }
   <header class="top">
     <span class="eyebrow">Locker Wars · item bank</span>
     <h1>Everything that can turn up in a unit</h1>
-    <p class="lede">All <b>${total} items</b> the game can place in a locker, with the procedural prefab each one builds, its base appraisal range in game dollars, how rare it is, and what it can be hidden under. Colours vary per locker, so each render shows one sample instance.</p>
+    <p class="lede">All <b>${total} items</b> the game can place in a locker, with its reveal card from the asset pack, its base appraisal range in game dollars, how rare it is, and which containers can hide it.</p>
     <div class="facts"><span><b>${total}</b> items</span><span><b>${byCat.length}</b> categories</span><span><b>${meta.covers.length}</b> concealments</span><span>Highest ceiling <b>${esc(priciest.name)} · ${money(priciest.value[1])}</b></span><span>Values shown at <b>1/${Math.round(1 / meta.scale)}</b> street price</span></div>
   </header>
   <div class="bar">
@@ -145,7 +147,7 @@ dd { margin: 2px 0 0; font-size: 13px; }
   ${byCat.map((g) => `<section class="cat" data-sec="${g.c}" id="${g.c}"><div class="cat-head"><h2>${esc(g.label)}</h2><span>${g.items.length} items · sorted by top value</span></div><div class="grid">${g.items.map(card).join('')}</div></section>`).join('')}
   <section class="cat covers" data-sec="covers" id="covers"><div class="cat-head"><h2>Concealments</h2><span>${meta.covers.length} cover types</span></div>
     <p class="note">Roughly a third to two thirds of each locker is concealed. A cover's size always matches the item under it, but its identity is only decided after the hammer falls.</p>
-    <div class="grid" style="margin-top:14px">${meta.covers.map((c) => `<article class="item" data-cat="covers" data-search="${esc((c.name + ' ' + c.description).toLowerCase())}"><div class="plate"><img src="${c.img}" alt="${esc(c.name)} render" width="240" height="240" loading="lazy" decoding="async"></div><div class="body"><div class="head"><h3>${esc(c.name)}</h3><code>${c.kind}</code></div><p>${esc(c.description)}</p></div></article>`).join('')}</div>
+    <div class="grid" style="margin-top:14px">${meta.covers.map((c) => `<article class="item" data-cat="covers" data-search="${esc((c.name + ' ' + c.description).toLowerCase())}"><div class="plate"><img src="${c.img}" alt="${esc(c.name)} card" width="300" height="400" loading="lazy" decoding="async"></div><div class="body"><div class="head"><h3>${esc(c.name)}</h3><code>${c.kind}</code></div><p>${esc(c.description)}</p></div></article>`).join('')}</div>
   </section>
   <p class="empty" id="empty" hidden>No items match that search.</p>
 </div>

@@ -6,6 +6,8 @@ import { CATEGORY_ICON, CATEGORY_LABEL, type Category } from '../game/items/type
 import { BOT_BY_ID, type Bot } from '../game/bots';
 import type { Appraisal } from '../game/lockerGen';
 import { icon, logoMark } from './icons';
+import { itemCard, coverCard } from '../pack/manifest';
+import type { CoverKind } from '../game/items/types';
 
 export interface ResultData {
   kind: 'won' | 'lost' | 'passed';
@@ -51,6 +53,8 @@ export class HUD {
   private balanceShown = 0;
   private installPrompt: (Event & { prompt: () => Promise<void> }) | null = null;
   private soundOn = true; private voiceOn = true;
+  private revealEl!: HTMLElement;
+  private menuLoading: number | null = null;
 
   constructor() {
     this.root.appendChild(h('<div class="vignette"></div>'));
@@ -73,6 +77,8 @@ export class HUD {
 
     this.auctLine = h('<div class="auct-line"></div>'); this.root.appendChild(this.auctLine);
     this.toasts = h('<div class="toasts"></div>'); this.root.appendChild(this.toasts);
+    this.revealEl = h('<div class="reveal-card" aria-hidden="true"><div class="flip"><div class="face front"><img alt=""></div><div class="face back"><img alt=""></div></div><div class="cap"><b></b><span></span></div></div>');
+    this.root.appendChild(this.revealEl);
 
     // inspection panel
     const pi = h(`<div class="panel panel-inspect">
@@ -197,10 +203,10 @@ export class HUD {
     this.dots.innerHTML = Array.from({ length: total }, () => '<i></i>').join('');
     this.runningEl.textContent = '$0'; this.runningEl.className = '';
     this.paidEl.textContent = paid > 0 ? `paid ${fmt(paid)}` : '';
-    this.cardIcon.innerHTML = icon('look', 22); this.cardName.textContent = 'Walking the locker…'; this.cardCond.textContent = ''; this.cardVal.textContent = '';
+    this.cardIcon.className = 'icon'; this.cardIcon.innerHTML = icon('look', 22); this.cardName.textContent = 'Walking the locker…'; this.cardCond.textContent = ''; this.cardVal.textContent = '';
   }
   showItem(a: Appraisal, index: number): void {
-    this.cardIcon.innerHTML = icon(CATEGORY_ICON[a.def.category], 24);
+    this.cardIcon.className = 'icon thumb'; this.cardIcon.innerHTML = `<img src="${itemCard(a.def.id)}" alt="" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.fb))" data-fb='${icon(CATEGORY_ICON[a.def.category], 24)}'>`;
     this.cardName.textContent = a.def.name;
     const tone = a.condition.tone;
     this.cardCond.innerHTML = `${a.revealed ? `<b>${icon('eye', 12)} Revealed</b>` : ''}<b class="${tone}">${a.condition.label}${a.condition.mult !== 1 ? ` ×${a.condition.mult}` : ''}</b><span>${CATEGORY_LABEL[a.def.category]}</span>`;
@@ -208,6 +214,25 @@ export class HUD {
     this.dots.querySelectorAll('i').forEach((d, i) => { d.className = i < index ? 'done' : i === index ? 'cur' : ''; });
   }
   showItemValue(v: number, bad: boolean): void { this.cardVal.textContent = fmt(v); this.cardVal.className = 'val' + (bad ? ' bad' : ''); }
+  /**
+   * Big reveal card. With a container, it shows the container's card and flips to the item.
+   * `hold` is how long it stays up (seconds of game time, already scaled by fast-forward).
+   */
+  revealCard(itemId: string, container: CoverKind | null, title: string, value: string, tone: 'good' | 'neutral' | 'bad', hold: number): void {
+    const el = this.revealEl;
+    const [front, back] = el.querySelectorAll('img');
+    (front as HTMLImageElement).src = container ? coverCard(container) : itemCard(itemId);
+    (back as HTMLImageElement).src = itemCard(itemId);
+    (el.querySelector('.cap b') as HTMLElement).textContent = title;
+    const v = el.querySelector('.cap span') as HTMLElement; v.textContent = value; v.className = tone;
+    el.className = 'reveal-card'; void el.offsetWidth;
+    el.classList.add('show', container ? 'flipping' : 'plain');
+    el.style.setProperty('--hold', `${Math.max(0.8, hold)}s`);
+    clearTimeout((el as unknown as { _t?: number })._t);
+    (el as unknown as { _t?: number })._t = window.setTimeout(() => el.classList.remove('show'), Math.max(0.8, hold) * 1000);
+  }
+  hideRevealCard(): void { this.revealEl.classList.remove('show'); }
+
   setRunning(total: number, paid: number): void {
     this.runningEl.textContent = fmt(total);
     this.runningEl.className = paid > 0 ? (total >= paid ? 'pos' : 'neg') : '';
@@ -224,7 +249,7 @@ export class HUD {
     }
     else { title = r.kind === 'passed' ? 'You passed' : `${r.winnerName} takes it`; }
     const missed = r.value - r.paid;
-    const bestHtml = r.best ? `<div class="quote">Best find: <b>${r.best.def.name}</b>${r.best.revealed ? ' (hidden)' : ''} · ${fmt(r.best.value)}</div>` : '';
+    const bestHtml = r.best ? `<div class="best"><img src="${itemCard(r.best.def.id)}" alt=""><div><span class="t-label">Best find</span><b>${r.best.def.name}</b><small>${r.best.revealed ? 'Was hidden · ' : ''}${r.best.condition.label}</small><em>${fmt(r.best.value)}</em></div></div>` : '';
     const quipHtml = r.quip ? `<div class="quote"><b>${r.quip.who}</b> “${r.quip.text}”</div>` : '';
     const tierBadge = r.tier ? `<span class="badge ${r.tier}">${TIER_LABEL[r.tier]}</span>` : '';
     let body = '';
@@ -264,7 +289,8 @@ export class HUD {
         <p>Win it and we count every item inside. <b>Pay less than it's worth</b> and you profit.</p>
       </div>
       <div class="menu-cta">
-        <button class="btn primary hero start">${icon('play', 20)} ${returning ? 'Back to the lot' : 'Start bidding'}</button>
+        <button class="btn primary hero start" ${this.menuLoading !== null ? 'disabled' : ''}>${icon('play', 20)} <span class="start-label">${this.menuLoading !== null ? 'Loading the crowd…' : returning ? 'Back to the lot' : 'Start bidding'}</span></button>
+        <div class="load-bar" ${this.menuLoading === null ? 'hidden' : ''}><i style="transform:scaleX(${this.menuLoading ?? 0})"></i></div>
         <div class="meta"><span>Bankroll</span><b>${fmt(stats.balance)}</b><span>·</span><span>Locker #${stats.round + 1} is next</span></div>
       </div>
       <div class="menu-side">
@@ -292,6 +318,17 @@ export class HUD {
     this.setSound(this.soundOn); this.setVoice(this.voiceOn);
     this.menu.classList.remove('hidden');
     this.setChrome(false);
+  }
+  /** null = ready; 0..1 = still loading characters. */
+  setMenuLoading(p: number | null, readyLabel = 'Start bidding'): void {
+    this.menuLoading = p;
+    const btn = this.menu.querySelector('.start') as HTMLButtonElement | null;
+    if (!btn) return;
+    btn.disabled = p !== null;
+    (btn.querySelector('.start-label') as HTMLElement).textContent = p !== null ? 'Loading the crowd…' : readyLabel;
+    const bar = this.menu.querySelector('.load-bar') as HTMLElement;
+    bar.hidden = p === null;
+    if (p !== null) (bar.firstElementChild as HTMLElement).style.transform = `scaleX(${p})`;
   }
   hideMenu(): void { this.menu.classList.add('hidden'); this.setChrome(true); }
 
@@ -338,7 +375,7 @@ export class HUD {
         <h2>Value by category</h2>
         <div class="bars">${cats.length ? cats.map(([c, v]) => `<div class="bar"><span>${icon(CATEGORY_ICON[c], 14)} ${CATEGORY_LABEL[c]}</span><div class="track"><i style="width:${(v.value / maxV) * 100}%"></i></div><span class="v">${fmt(v.value)}</span></div>`).join('') : '<p>Win a locker to start tracking.</p>'}</div>
         <h2>Top finds</h2>
-        <div class="list">${items.map(([, v]) => `<div class="li"><div>${icon(CATEGORY_ICON[v.category], 16)}<div>${v.name}<small>found ${v.count}× · best ${fmt(v.best)}</small></div></div><b>${fmt(v.value)}</b></div>`).join('') || '<p>Nothing yet.</p>'}</div>`;
+        <div class="list">${items.map(([id, v]) => `<div class="li"><div><img class="mini" src="${itemCard(id)}" alt="" loading="lazy"><div>${v.name}<small>found ${v.count}× · best ${fmt(v.best)}</small></div></div><b>${fmt(v.value)}</b></div>`).join('') || '<p>Nothing yet.</p>'}</div>`;
       } else if (tab === 'rivals') {
         const rows = Object.entries(s.rivals).sort((a, b) => b[1].beatYou - a[1].beatYou);
         body = `<h2>Head to head</h2><div class="list">${rows.map(([id, r]) => { const b = BOT_BY_ID[id]; return `<div class="li"><div><i class="dot" style="background:${cssColor(b.color)}"></i><div>${b.name}<small>outbid you ${r.beatYou}× · you outbid them ${r.youBeat}× · bought ${r.lockers} for ${fmt(r.spent)}</small></div></div><b class="${r.beatYou > r.youBeat ? 'bad' : 'good'}">${r.youBeat}–${r.beatYou}</b></div>`; }).join('') || '<p>No auctions yet.</p>'}</div>`;

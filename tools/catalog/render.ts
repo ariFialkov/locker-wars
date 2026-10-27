@@ -1,7 +1,8 @@
 /**
- * Dev-only prefab renderer used by scripts/item-catalog.mjs. Builds each item
- * (and each concealment) with a fixed seed, frames it at a 3/4 studio angle and
- * returns a WebP data URL. Not part of the game build.
+ * Dev-only page used by scripts/item-catalog.mjs: exposes the game's item and
+ * container data (descriptions, values, rarity, pack container fits). It can also
+ * render the procedural fallback models (renderItem/renderCover). Not part of the
+ * game build.
  */
 import * as THREE from 'three';
 import { ITEM_BANK } from '../../src/game/items/bank';
@@ -11,6 +12,7 @@ import { THEMES } from '../../src/game/lockerGen';
 import { VALUE_SCALE } from '../../src/core/config';
 import { makeRNG } from '../../src/core/rng';
 import { DESCRIPTIONS, COVER_DESCRIPTIONS } from './descriptions';
+import { COVER_PACK_ID } from '../../src/pack/manifest';
 
 const canvas = document.getElementById('c') as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, alpha: true });
@@ -77,7 +79,7 @@ const SAMPLE_SEED = 20261020;
     footprint: d.footprint,
     description: DESCRIPTIONS[d.id] ?? '',
   })),
-  covers: (Object.keys(COVER_LABEL) as CoverKind[]).map((k) => ({ kind: k, name: COVER_LABEL[k], description: COVER_DESCRIPTIONS[k] ?? '' })),
+  covers: (Object.keys(COVER_LABEL) as CoverKind[]).map((k) => ({ kind: k, name: COVER_LABEL[k], description: COVER_DESCRIPTIONS[k] ?? '', card: `cards/${COVER_PACK_ID[k]}.webp` })),
   renderItem(id: string): string {
     const d = ITEM_BANK.find((x) => x.id === id)!;
     return shoot(d.build(makeRNG(SAMPLE_SEED ^ d.id.length * 7919)));

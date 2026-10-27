@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import type { RNG } from '../../core/rng';
 import { g } from '../../core/config';
+import { PACK_ITEMS } from '../../pack/manifest';
 import type { ItemDef } from './types';
 import { box, cyl, sphere, torus, cone, group, at, rot, mat, mesh, WOODS, METALS, PLASTICS, FABRICS, PASTELS, vary } from './shapes';
 
@@ -636,6 +637,8 @@ export const ITEM_BANK: ItemDef[] = [
 
 // Values above are authored in street dollars; convert once to game dollars.
 for (const d of ITEM_BANK) d.value = [g(d.value[0]), g(d.value[1])];
+// The asset pack's models are the source of truth for physical size.
+for (const d of ITEM_BANK) { const p = PACK_ITEMS[d.id]; if (p) d.footprint = [p.dims_m.w, p.dims_m.h, p.dims_m.d]; }
 
 export const ITEM_BY_ID: Record<string, ItemDef> = Object.fromEntries(ITEM_BANK.map((d) => [d.id, d]));
 

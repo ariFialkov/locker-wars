@@ -63,20 +63,25 @@ The Stats panel shows theoretical vs realised RTP, the outcome history, value by
 ## Tech
 
 - Vite 8 + TypeScript, Three.js (r186) for rendering, `vite-plugin-pwa` (Workbox) for offline install.
-- No art or audio assets: every item, cover, figure and piece of set dressing is built from primitives with per-instance colour variation; every sound (bolt cutters, door roll and slam, gavel, cash register, crowd murmur, stamps, fanfares) is synthesised with the Web Audio API. Voices use `speechSynthesis` with a synthesised babble fallback.
+- **Art and voices come from the Locker Wars asset pack** in `assets/pack` (see its `SOURCE.md`): 9 rigged, animated characters, 121 item models, 8 container models, 129 reveal cards and 72 recorded voice lines, all described by the pack's `manifest.json`. The steamer trunk card was rendered in the pack's style by `tools/cards/card.ts`.
+- The build plugin in `vite.config.ts` serves the pack at `./pack/` in development and copies it into `dist/pack`. The service worker caches pack files as they are used instead of precaching all 29 MB.
+- Frame-rate rules for the pack (`src/pack/loader.ts`): models parse one at a time on separate frames with compression decoding in workers, textures are uploaded before a model is first shown, and at most 40 item and container models stay in memory. A locker's models load while its lock is cut, hidden items load while the auctioneer calls "sold", and the next locker loads during the count-up. Every shader is compiled and drawn once behind the menu's loading bar.
+- The procedural models, synthesised sound effects and speech synthesis are kept as fallbacks if a pack file fails to load. Sound effects (bolt cutters, door, gavel, cash register, crowd) are still synthesised with the Web Audio API.
 - Two quality tiers (shadow resolution, pixel ratio, flashlight shadows) picked automatically for touch devices; layout adapts to portrait, landscape and safe areas.
 
 ## Project layout
 
 ```
-assets/pack     third-party asset pack (characters, voice lines, item models, cards); see assets/pack/SOURCE.md, not shipped yet
+assets/pack     asset pack: characters, voice lines, item and container models, cards (see assets/pack/SOURCE.md)
+src/pack        pack manifest access, model loader, recorded voice-line player
 src/core        rng, money/bid ladder, RTP economy, stats persistence, tween system
 src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, auction FSM, round orchestrator
-src/render      scene & environment, roll-up door + lock cutting, crowd figures, camera rig, particles, locker contents
+src/render      scene & environment, roll-up door + lock cutting, animated crowd, camera rig, particles, locker contents
 src/audio       synthesised SFX, voices
 src/ui          HUD panels, modals, stats dashboard, 3D-anchored labels/speech bubbles
 test            vitest suites for the economy, generator and auction
-scripts         icon generator
+scripts         icon generator, item catalog generator, headless walkthrough
+tools           dev-only pages: item catalog data, reveal-card renderer
 ```
 
 ## Tuning knobs

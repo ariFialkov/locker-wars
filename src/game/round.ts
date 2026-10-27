@@ -1,17 +1,22 @@
 /**
  * Round orchestrator: arrival → lock cut → door up → inspection → auction →
  * sold → count-up → result → door down → next locker.
+ *
+ * Characters, items, containers, cards and voices come from the asset pack.
+ * Nothing on screen waits on the network mid-moment: the crowd loads before the
+ * menu unlocks, a locker's models load while its lock is cut, hidden items load
+ * while the auctioneer calls "sold", and the next locker loads during the count-up.
  */
 import * as THREE from 'three';
 import { GameScene, type Quality } from '../render/scene';
 import { RollupDoor } from '../render/door';
-import { Crowd } from '../render/crowd';
+import { Crowd, type Actor } from '../render/crowd';
 import { CameraRig } from '../render/cameraRig';
 import { FX } from '../render/fx';
-import { LockerContents } from '../render/contents';
+import { LockerContents, prefetchLocker, releasePaths, warmupObjects } from '../render/contents';
 import { Labels } from '../ui/labels';
 import { HUD } from '../ui/hud';
-import { makeRNG, hashString, type RNG } from '../core/rng';
+import { makeRNG, type RNG } from '../core/rng';
 import { drawOutcome, payoutTarget, type Outcome } from '../core/economy';
 import { fmt, increment, snap } from '../core/money';
 import { g } from '../core/config';
@@ -21,10 +26,15 @@ import { generateLocker, resolveLocker, type Locker, type Resolution, type Appra
 import { Auction, type AuctionEvent } from './auction';
 import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
-import { voice, chantify } from '../audio/voice';
+import { voice } from '../audio/voice';
+import { voiceLines } from '../pack/voices';
+import { initPackLoader } from '../pack/loader';
+import type { PackLine } from '../pack/manifest';
 
 type Phase = 'menu' | 'idle' | 'arrive' | 'inspect' | 'auction' | 'sold' | 'count' | 'result';
 const INSPECT_SECONDS = 15;
+/** Unit numbers the auctioneer names in his intro lines, so the sign over the door agrees with him. */
+const INTRO_UNITS: Record<string, string> = { intro_1: 'B-214', intro_2: 'C-377' };
 
 export class Game {
   readonly gs: GameScene;
@@ -42,12 +52,17 @@ export class Game {
   private bots: Bot[] = [];
   private outcome: Outcome | null = null;
   private roundRng: RNG = makeRNG(0);
+  private talkRng: RNG = makeRNG('talk');
   private inspectLeft = 0;
   private nameTags = new Map<string, HTMLElement>();
   private lastHudSync = 0;
   private going: 0 | 1 | 2 = 0;
-  private t = 0;
-  private focus = new THREE.Vector3(0, 1.2, 0);
+  private auctionClock = 0;
+  private lullSaid = false;
+  private playerBidsThisRound = 0;
+  private prefetched: { n: number; paths: string[] } | null = null;
+  private crowdReady = false;
+  private shadersWarm = false;
 
   constructor(canvas: HTMLCanvasElement, quality: Quality) {
     this.stats = loadStats();
@@ -55,6 +70,7 @@ export class Game {
     const seedParam = url.searchParams.get('seed');
     if (seedParam && seedParam !== this.stats.sessionSeed) { this.stats.sessionSeed = seedParam; this.stats.round = 0; }
     this.gs = new GameScene(canvas, quality);
+    initPackLoader(this.gs.renderer);
     this.door = new RollupDoor(this.gs.scene);
     this.crowd = new Crowd(this.gs.scene);
     this.rig = new CameraRig(this.gs.camera, canvas);
@@ -62,17 +78,51 @@ export class Game {
     this.labels = new Labels(this.gs.camera);
     sfx.setEnabled(this.stats.settings.sound);
     voice.setEnabled(this.stats.settings.voice && this.stats.settings.sound);
+    voiceLines.enabled = this.stats.settings.voice;
+    voiceLines.preload('auctioneer');
     this.hud.setSound(this.stats.settings.sound);
     this.hud.setBalance(this.stats.balance, false);
     this.wireHud();
     this.rig.home(true);
-    this.showMenu();
     requestAnimationFrame(this.loop);
+    void this.boot();
+  }
+
+  /** First load: the crowd's models, then the showcase unit. The menu is visible (and the camera sweeping) throughout. */
+  private async boot(): Promise<void> {
+    this.phase = 'menu';
+    this.door.setOpen(1);
+    this.rig.showcase();
+    this.hud.showMenu(this.stats, BOTS);
+    this.hud.setMenuLoading(0);
+    await this.crowd.loadCharacters((p) => this.hud.setMenuLoading(p * 0.75));
+    this.crowdReady = true;
+    await this.showMenu();
+  }
+
+  /**
+   * Compile every shader the game will need while the menu still says "Loading", so no
+   * moment mid-round (first reveal, first coin burst) stalls on shader compilation.
+   */
+  private async warmShaders(): Promise<void> {
+    // Some drivers (and software GL) only finish a shader the first time it draws pixels, so the
+    // stand-ins are drawn for a few frames, a few pixels wide, just in front of the camera.
+    const cam = this.gs.camera;
+    const spot = new THREE.Vector3(0, 0, -1.5).applyQuaternion(cam.quaternion).add(cam.position);
+    const extra = warmupObjects();
+    extra.position.copy(spot); extra.scale.setScalar(0.04); extra.lookAt(cam.position);
+    this.gs.scene.add(extra);
+    this.fx.warmup(spot);
+    const r = this.gs.renderer;
+    if (r.extensions.has('KHR_parallel_shader_compile')) { try { await r.compileAsync(this.gs.scene, cam); } catch { r.compile(this.gs.scene, cam); } }
+    else r.compile(this.gs.scene, cam);
+    for (let i = 0; i < 3; i++) await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    this.gs.scene.remove(extra);
   }
 
   private wireHud(): void {
     const H = this.hud;
-    H.onStart = () => { sfx.unlock(); void this.leaveMenu(); };
+    H.onStart = () => { sfx.unlock(); voiceLines.warm(); void this.leaveMenu(); };
     H.onMenu = () => { void this.backToMenu(); };
     H.onFlashlight = () => { sfx.click(); this.gs.setFlashlight(!this.gs.flashlightOn); H.setFlashlight(this.gs.flashlightOn); };
     H.onReady = () => { if (this.phase === 'inspect') this.inspectLeft = 0; };
@@ -81,8 +131,20 @@ export class Game {
     H.onFastForward = () => { clock.scale = clock.scale > 1 ? 1 : 4; H.toast(clock.scale > 1 ? 'Fast-forward ×4' : 'Normal speed', 900); };
     H.onNext = () => this.nextRound();
     H.onBailout = () => { this.stats.balance += BAILOUT_AMOUNT; this.stats.bailouts++; this.hud.setBalance(this.stats.balance); saveStats(this.stats); this.nextRound(); };
-    H.onToggleSound = () => { this.stats.settings.sound = !this.stats.settings.sound; sfx.unlock(); sfx.setEnabled(this.stats.settings.sound); voice.setEnabled(this.stats.settings.sound && this.stats.settings.voice); saveStats(this.stats); return this.stats.settings.sound; };
-    H.onToggleVoice = () => { this.stats.settings.voice = !this.stats.settings.voice; voice.setEnabled(this.stats.settings.voice && this.stats.settings.sound); saveStats(this.stats); return this.stats.settings.voice; };
+    H.onToggleSound = () => {
+      this.stats.settings.sound = !this.stats.settings.sound;
+      sfx.unlock(); sfx.setEnabled(this.stats.settings.sound);
+      voice.setEnabled(this.stats.settings.sound && this.stats.settings.voice);
+      if (!this.stats.settings.sound) voiceLines.stop(); else voiceLines.warm();
+      saveStats(this.stats); return this.stats.settings.sound;
+    };
+    H.onToggleVoice = () => {
+      this.stats.settings.voice = !this.stats.settings.voice;
+      voice.setEnabled(this.stats.settings.voice && this.stats.settings.sound);
+      voiceLines.enabled = this.stats.settings.voice;
+      if (!voiceLines.enabled) voiceLines.stop();
+      saveStats(this.stats); return this.stats.settings.voice;
+    };
     H.onOpenStats = () => this.stats;
     H.onReset = () => { this.stats = resetStats(); this.hud.setBalance(this.stats.balance, false); location.reload(); };
   }
@@ -92,20 +154,25 @@ export class Game {
   /* ------------------------------------------------------------ */
 
   /** The menu is the live 3D scene: an open, packed unit with the crowd gathered, camera sweeping slowly. */
-  private showMenu(): void {
+  private async showMenu(): Promise<void> {
     this.phase = 'menu';
-    this.contents?.dispose();
-    const showcase = generateLocker('showcase-' + this.stats.sessionSeed, 9);
-    this.contents = new LockerContents(this.gs.scene, showcase);
-    this.bots = makeRNG(this.stats.sessionSeed + ':menu').shuffle([...BOTS]).slice(0, 5);
-    this.crowd.setRivals(this.bots);
+    this.hud.showPanel(null); this.hud.hideAuctioneer(); this.hud.hideModals(); this.hud.hideRevealCard();
+    this.rig.showcase();
+    this.hud.showMenu(this.stats, BOTS);
+    this.hud.setMenuLoading(this.crowdReady ? 0.8 : 0);
     this.labels.clear(); this.nameTags.clear();
     this.door.resetLock(); this.door.setOpen(1);
     this.gs.setFlashlight(false); this.hud.setFlashlight(false);
     this.gs.interiorBulb.intensity = 2.5;
-    this.hud.showPanel(null); this.hud.hideAuctioneer(); this.hud.hideModals();
-    this.rig.showcase();
-    this.hud.showMenu(this.stats, BOTS);
+    this.gs.setUnitNumber('B-214');
+    const showcase = generateLocker('showcase-' + this.stats.sessionSeed, 9);
+    this.bots = makeRNG(this.stats.sessionSeed + ':menu').shuffle([...BOTS]).slice(0, 5);
+    const [contents] = await Promise.all([LockerContents.create(this.gs.scene, showcase), this.crowd.setRivals(this.bots)]);
+    if (this.phase !== 'menu') { contents.dispose(); return; }
+    this.contents?.dispose();
+    this.contents = contents;
+    if (!this.shadersWarm) { this.hud.setMenuLoading(0.9); await this.warmShaders(); this.shadersWarm = true; }
+    this.hud.setMenuLoading(null, this.stats.rounds > 0 ? 'Back to the lot' : 'Start bidding');
   }
 
   private async leaveMenu(): Promise<void> {
@@ -124,13 +191,15 @@ export class Game {
   private async backToMenu(): Promise<void> {
     this.phase = 'idle';
     cancelAllTweens(); clock.scale = 1;
+    voiceLines.stop();
     this.gs.interiorBulb.intensity = 0; this.gs.workLight.intensity = 0;
     this.rig.home(); this.rig.lock();
-    this.hud.showPanel(null); this.hud.hideBanner();
+    this.hud.showPanel(null); this.hud.hideBanner(); this.hud.hideRevealCard();
     await wait(0.3);
     await this.door.close();
+    this.contents?.dispose(); this.contents = null;
     await wait(0.2);
-    this.showMenu();
+    await this.showMenu();
   }
 
   /* ------------------------------------------------------------ */
@@ -142,13 +211,17 @@ export class Game {
     saveStats(this.stats);
     const n = this.stats.round;
     this.roundRng = makeRNG(`${this.stats.sessionSeed}#${n}:round`);
+    this.talkRng = makeRNG(`${this.stats.sessionSeed}#${n}:talk`);
     this.locker = generateLocker(this.stats.sessionSeed, n);
-    this.contents?.dispose();
-    this.contents = new LockerContents(this.gs.scene, this.locker);
     this.bots = this.roundRng.fork('bots').shuffle([...BOTS]).slice(0, 4);
+    for (const b of this.bots) for (const id of b.pack) voiceLines.preload(id);
     // The whole round's fate, decided before anyone sees anything. (See economy.ts.)
     this.outcome = drawOutcome(this.roundRng.fork('outcome'));
-    this.crowd.setRivals(this.bots);
+    this.playerBidsThisRound = 0;
+    // models load while the lock is being cut
+    const contentsReady = LockerContents.create(this.gs.scene, this.locker);
+    const prev = this.prefetched; this.prefetched = null;
+    await this.crowd.setRivals(this.bots);
     this.labels.clear(); this.nameTags.clear();
     for (const b of this.bots) {
       const f = this.crowd.rivals.get(b.id)!;
@@ -164,10 +237,16 @@ export class Game {
     this.rig.home(); this.rig.lock();
     this.phase = 'arrive';
     this.hud.showBanner(`Locker #${n}`, this.locker.theme.name);
-    this.bubbleAuctioneer(n === 1 ? 'Welcome, folks! Fresh unit, no idea what\'s inside. Cut it!' : this.roundRng.pick(['Next unit! Cut it open.', 'Alright, alright, next one. Cut the lock!', 'Here we go again, folks. Open her up!', 'This one\'s been sealed for years. Cut it!']), 2.6);
+    const intro = n === 1 ? voiceLines.lines('auctioneer', 'intro').find((l) => l.id === 'intro_1') ?? null : voiceLines.pick(this.talkRng, 'auctioneer', 'intro');
+    this.gs.setUnitNumber(INTRO_UNITS[intro?.id ?? ''] ?? `${'ABCDE'[n % 5]}-${100 + ((n * 137) % 800)}`);
+    this.sayAuctioneer(intro, { anim: 'wave' });
     await wait(0.8);
     this.hud.showBanner('Cutting the lock', this.locker.theme.blurb);
     await this.door.cutLock(() => { this.fx.sparksAt(this.door.lockPos); });
+    const contents = await contentsReady;
+    if (prev) releasePaths(prev.paths);
+    this.contents?.dispose();
+    this.contents = contents;
     this.hud.showBanner('Door\'s going up…', '');
     const dustP = new THREE.Vector3(0, 0.2, 0.2);
     const dust = tween(2.2, (k) => { if (Math.random() < 0.3) this.fx.dustAt(dustP.set((Math.random() - 0.5) * 3, 0.1 + k * 1.5, 0.1), 3); }, linear);
@@ -182,20 +261,21 @@ export class Game {
     this.rig.home();
     this.hud.showPanel('inspect');
     this.hud.showBanner('Take a look', `${INSPECT_SECONDS}s · no stepping inside`, 1);
-    this.bubbleAuctioneer(this.roundRng.pick(['Look but don\'t touch! Thirty seconds.', 'Eyes only, folks. No crossing the line!', 'Get your look in, no touching!']), 2.4);
+    this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'look'), { anim: 'gesture' });
     sfx.murmurOn();
-    // crowd leans in and mutters
-    for (const [id, f] of this.crowd.rivals) {
-      const b = BOT_BY_ID[id];
-      if (this.roundRng.chance(0.5)) setTimeout(() => this.bubbleBot(b, this.roundRng.pick(['Hmm.', 'Is that a…?', 'Junk.', 'Ooh.', 'That tarp though.', 'Nope.', 'Interesting.', 'Could be something.']), 1.6), 1500 + Math.random() * 6000);
-      void f;
-    }
+    // one rival talks a little trash, another reacts to what they see
+    const order = this.talkRng.shuffle([...this.bots]);
+    const n = this.locker?.number ?? 0;
+    setTimeout(() => { if (this.phase === 'inspect' && this.locker?.number === n) this.sayRival(order[0], 'flair', { anim: 'flair' }); }, 3500 + this.talkRng.range(0, 1500));
+    setTimeout(() => { if (this.phase === 'inspect' && this.locker?.number === n) this.sayRival(order[1], 'react'); }, 8500 + this.talkRng.range(0, 2000));
   }
 
   private startAuction(): void {
     if (!this.locker) return;
     this.phase = 'auction';
     this.going = 0;
+    this.auctionClock = 0;
+    this.lullSaid = false;
     this.auction = new Auction({ apparentValue: this.locker.apparentValue, bots: this.bots, rng: this.roundRng.fork('auction'), playerBalance: () => this.stats.balance });
     this.auction.start();
     this.hud.showPanel('auction');
@@ -207,7 +287,9 @@ export class Game {
     if (!this.auction || this.phase !== 'auction') return;
     if (this.auction.playerBid(amount)) {
       sfx.bidBlip(true);
-      this.bubbleAuctioneer(this.roundRng.pick([`${fmt(this.auction.price)} from the newcomer!`, `Yes! ${fmt(this.auction.price)}!`, `${fmt(this.auction.price)} right here, thank you!`, `I've got ${fmt(this.auction.price)}!`]), 1.5, 'auctioneer');
+      this.playerBidsThisRound++;
+      const line = this.playerBidsThisRound === 1 ? voiceLines.lines('auctioneer', 'player').find((l) => l.id === 'player_2') ?? null : voiceLines.pick(this.talkRng, 'auctioneer', this.talkRng.chance(0.5) ? 'player' : 'ack');
+      this.sayAuctioneer(line, { anim: 'point', hud: `${fmt(this.auction.price)} from the new face. Looking for ${fmt(this.auction.ask)}!` });
       this.going = 0;
       this.syncAuctionHud();
     } else {
@@ -232,36 +314,40 @@ export class Game {
   private handleAuctionEvent(e: AuctionEvent): void {
     switch (e.type) {
       case 'open':
-        this.bubbleAuctioneer(e.text, 2.4, 'auctioneer');
+        this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'open'), { anim: 'gesture', hud: e.text });
         break;
       case 'bid': {
         this.going = 0;
         if (e.who !== 'player') {
           const bot = BOT_BY_ID[e.who];
           const f = this.crowd.rivals.get(e.who);
-          f?.raise();
-          this.bubbleBot(bot, e.line || fmt(e.amount) + '!', 1.5, true);
           sfx.bidBlip(false);
           sfx.crowdReact(e.jump ? 0.9 : 0.4);
           if (f) this.rig.glance(f.group.position.x);
           if (e.jump) this.hud.toast(`${bot.short} jumps to ${fmt(e.amount)}!`, 1400);
+          // either the rival shouts their bid, or the auctioneer calls it
+          if (!voiceLines.isBusy('crowd') && this.talkRng.chance(0.6)) this.sayRival(bot, 'bid', { anim: 'bid', fallbackText: `${fmt(e.amount)}!` });
+          else {
+            f?.bid();
+            this.labels.bubble((o) => f!.labelAnchor(o), `${fmt(e.amount)}!`, '', 1.2, 26, bot.id);
+            this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'ack'), { anim: 'gesture', interrupt: false, hud: `${fmt(e.amount)} from ${bot.short}. Looking for ${fmt(this.auction!.ask)}!` });
+          }
+          this.hud.auctioneer(`${fmt(e.amount)} from ${bot.short}. Looking for ${fmt(this.auction!.ask)}!`);
         }
         break;
       }
       case 'chant':
-        this.bubbleAuctioneer(e.text, 1.6, 'auctioneer', false);
+        // patter keeps the caption current; the recorded voice carries the moments that matter
+        this.hud.auctioneer(e.text);
         break;
       case 'going':
         this.going = e.count;
-        this.bubbleAuctioneer(e.text, 1.4, 'auctioneer');
+        this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', e.count === 1 ? 'once' : 'twice'), { anim: 'gesture', hud: e.text });
         sfx.tick();
         break;
-      case 'drop': {
-        const bot = BOT_BY_ID[e.who];
-        this.crowd.rivals.get(e.who)?.shrug();
-        this.bubbleBot(bot, e.line, 1.8);
+      case 'drop':
+        this.sayRival(BOT_BY_ID[e.who], 'out', { anim: 'sulk' });
         break;
-      }
       case 'sold':
         void this.onSold(e.who, e.amount, e.text);
         break;
@@ -273,26 +359,15 @@ export class Game {
     if (!this.locker || !this.auction || !this.outcome) return;
     this.phase = 'sold';
     this.going = 0;
-    voice.stopAll();
     sfx.gavel();
-    this.crowd.auctioneer.gavelSwing();
     sfx.murmurOff();
     this.hud.showPanel(null);
-    this.hud.hideAuctioneer();
     const playerWon = who === 'player';
     const winnerName = playerWon ? 'You' : BOT_BY_ID[who ?? '']?.name ?? 'Nobody';
     this.hud.showBanner('SOLD!', `${fmt(amount)} to ${winnerName}`, null, true);
-    this.bubbleAuctioneer(soldText, 3.0, 'auct', true, false);
-    if (playerWon) {
-      sfx.crowdReact(1);
-      for (const [id] of this.crowd.rivals) { const b = BOT_BY_ID[id]; if (this.roundRng.chance(0.5)) setTimeout(() => this.bubbleBot(b, this.roundRng.pick(b.loseLines), 1.8), 600 + Math.random() * 1200); }
-    } else if (who) {
-      this.crowd.rivals.get(who)?.cheer();
-      setTimeout(() => this.bubbleBot(BOT_BY_ID[who], this.roundRng.pick(BOT_BY_ID[who].winLines), 1.8), 500);
-    }
-    await wait(2.2);
+    this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'sold'), { anim: 'point', hud: soldText });
 
-    // ---- settle the bet ----
+    // ---- settle the bet now, so hidden items load while the crowd reacts ----
     let res: Resolution;
     const couldHaveHadFor = snap(this.auction.topRivalLimit + increment(this.auction.topRivalLimit));
     if (playerWon) {
@@ -303,13 +378,24 @@ export class Game {
       res = resolveLocker(this.locker, target, this.roundRng.fork('resolve'));
       this.stats.debt += res.error;
       saveStats(this.stats);
-      await this.countUp(res, amount, false);
     } else {
       // Nothing at stake for the player: the reveal is pure theatre, drawn from the same distribution.
       const m = drawOutcome(this.roundRng.fork('display')).multiplier;
       res = resolveLocker(this.locker, m * amount, this.roundRng.fork('resolve'));
-      await this.countUp(res, amount, true);
     }
+    this.contents?.prefetchReveals(res.appraisals);
+
+    if (playerWon) {
+      sfx.crowdReact(1);
+      const sore = this.talkRng.shuffle([...this.bots]).slice(0, 2);
+      sore.forEach((b, i) => setTimeout(() => this.sayRival(b, 'react', { anim: 'sulk' }), 1400 + i * 1500));
+    } else if (who) {
+      const w = BOT_BY_ID[who];
+      this.crowd.rivals.get(who)?.cheer();
+      setTimeout(() => this.sayRival(w, 'win'), 1300);
+    }
+    await wait(2.6);
+    await this.countUp(res, amount, !playerWon);
     this.finishRound(who, amount, res, couldHaveHadFor);
   }
 
@@ -317,6 +403,7 @@ export class Game {
   private async countUp(res: Resolution, paid: number, quick: boolean): Promise<void> {
     this.phase = 'count';
     clock.scale = 1;
+    this.prefetchNext();
     const list = res.appraisals;
     const n = list.length;
     const total = res.total;
@@ -327,6 +414,7 @@ export class Game {
     this.hud.showPanel('count');
     this.hud.startCount(n, quick ? 0 : paid);
     this.hud.showBanner(quick ? 'What was inside' : 'Counting it up', quick ? 'Here\'s what you missed…' : 'Every item, appraised', 0);
+    this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'reveal'), { anim: 'gesture' });
     this.gs.interiorBulb.intensity = 6; // someone finally screwed in a bulb
     this.gs.workLight.intensity = 30;
     let running = 0;
@@ -344,6 +432,11 @@ export class Game {
       this.hud.setBannerProgress(i / n);
       const pre = Math.min(dur * 0.35, 1.0);
       await wait(pre);
+      // reveal cards: every hidden item flips from its container's card; the best visible items get one too
+      const bad = a.condition.tone === 'bad' && a.value < a.baseValue * 0.5;
+      if (a.revealed || (a.value >= 0.5 * maxV && a.value >= g(300))) {
+        this.hud.revealCard(a.def.id, a.revealed ? a.item.cover!.kind : null, a.def.name, fmt(a.value), bad ? 'bad' : 'good', Math.min(2.4, Math.max(1.2, dur * 0.8)) / clock.scale);
+      }
       if (a.revealed) { await this.contents!.reveal(a); }
       else { void this.contents!.bumpUid(a.item.uid); await wait(Math.min(0.35, dur * 0.15)); }
       // condition stamp
@@ -353,8 +446,8 @@ export class Game {
       let lastTick = -1;
       const before = running;
       await tween(tickDur, (k) => {
-        const v = Math.round(a.value * k);
-        this.hud.showItemValue(v, a.condition.tone === 'bad' && a.value < a.baseValue * 0.5);
+        const v = Math.round(a.value * k * 100) / 100;
+        this.hud.showItemValue(v, bad);
         const r = before + v;
         this.hud.setRunning(r, quick ? 0 : paid);
         if (!quick) this.hud.setBalance(this.stats.balance + r, false);
@@ -362,7 +455,7 @@ export class Game {
         if (step !== lastTick) { lastTick = step; sfx.cashTick(step + i); }
       }, easeOut);
       running += a.value;
-      this.hud.showItemValue(a.value, a.condition.tone === 'bad' && a.value < a.baseValue * 0.5);
+      this.hud.showItemValue(a.value, bad);
       this.labels.pop((o) => o.copy(p).setY(p.y + fp[1] * 0.5 + 0.2), a.value > 0 ? '+' + fmt(a.value) : fmt(0), a.condition.tone === 'bad');
       if (a.value >= g(1000) || a.value > bestSoFar * 2 && a.value > g(300)) { sfx.kaching(a.value >= g(5000)); this.fx.coinsAt(p.clone().setY(p.y + fp[1] * 0.5), a.value >= g(5000) ? 60 : 25); }
       else if (a.value >= g(150)) { sfx.kaching(false); }
@@ -374,10 +467,23 @@ export class Game {
     this.hud.setBannerProgress(1);
     if (!quick) { this.stats.balance += total; this.hud.setBalance(this.stats.balance, false); }
     this.gs.workLight.intensity = 0;
+    // the auctioneer calls it: a jackpot or a bust gets its own line
+    const ratio = total / Math.max(0.01, paid);
+    const tier = !quick ? this.outcome?.tier : null;
+    if (tier === 'jackpot' || tier === 'huge' || (quick && ratio >= 2.2)) this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'jackpot'), { anim: 'point' });
+    else if (tier === 'bust' || (quick && ratio < 0.3)) this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'bust'), { anim: 'gesture' });
     // pull back for the total
     this.rig.flyTo(new THREE.Vector3(0, 1.6, 1.4), new THREE.Vector3(0, 1.0, -1.4));
     await wait(quick ? 0.8 : 1.4);
     clock.scale = 1;
+  }
+
+  /** The next locker is deterministic, so its models can load during this count-up. */
+  private prefetchNext(): void {
+    const n = this.stats.round + 1;
+    if (this.prefetched?.n === n) return;
+    if (this.prefetched) releasePaths(this.prefetched.paths);
+    this.prefetched = { n, paths: prefetchLocker(generateLocker(this.stats.sessionSeed, n)) };
   }
 
   private finishRound(who: string | null, amount: number, res: Resolution, couldHaveHadFor: number): void {
@@ -410,7 +516,8 @@ export class Game {
       for (const cat of new Set(res.appraisals.map((a) => a.def.category))) s.byCategory[cat]!.lockers++;
       for (const b of this.bots) { const r = (s.rivals[b.id] ??= { beatYou: 0, youBeat: 0, lockers: 0, spent: 0 }); r.youBeat++; }
       const rival = this.roundRng.pick(this.bots);
-      quip = { who: rival.name, text: profit >= 0 ? this.roundRng.pick(['Beginner\'s luck.', 'Enjoy it while it lasts.', 'Okay, that was a good one.', 'I was gonna bid that.']) : this.roundRng.pick(rival.loseLines) };
+      const reactLine = this.rivalLine(rival, 'react');
+      quip = { who: rival.name, text: reactLine?.text ?? this.roundRng.pick(rival.loseLines) };
       pushRound(s, { ...record, result: 'won', winner: 'player', profit, multiplier: value / amount, tier: this.outcome.tier });
       if (profit >= 0) sfx.fanfare(this.outcome.tier === 'huge' || this.outcome.tier === 'jackpot'); else sfx.sad();
     } else {
@@ -419,7 +526,7 @@ export class Game {
       s.streak = 0;
       if (who) { const r = (s.rivals[who] ??= { beatYou: 0, youBeat: 0, lockers: 0, spent: 0 }); r.lockers++; r.spent += amount; if (bid) r.beatYou++; }
       const w = who ? BOT_BY_ID[who] : null;
-      if (w) quip = { who: w.name, text: value > amount ? this.roundRng.pick(w.winLines) : this.roundRng.pick(['…don\'t say anything.', 'Well. That happened.', 'It\'s an investment.']) };
+      if (w) quip = { who: w.name, text: value > amount ? this.rivalLine(w, 'win')?.text ?? this.roundRng.pick(w.winLines) : this.roundRng.pick(['…don\'t say anything.', 'Well. That happened.', 'It\'s an investment.']) };
       pushRound(s, { ...record, result: bid ? 'lost' : 'passed', winner: who ?? 'nobody', profit: 0, multiplier: value / Math.max(1, amount), tier: null });
     }
     saveStats(s);
@@ -434,10 +541,12 @@ export class Game {
     this.phase = 'idle';
     cancelAllTweens();
     clock.scale = 1;
+    this.hud.hideRevealCard();
     this.gs.interiorBulb.intensity = 0;
     this.gs.workLight.intensity = 0;
     this.rig.home(); this.rig.lock();
     this.hud.showBanner('Rolling it down', '');
+    this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'outro'), { anim: 'bow' });
     await wait(0.4);
     await this.door.close();
     this.contents?.dispose(); this.contents = null;
@@ -446,20 +555,45 @@ export class Game {
   }
 
   /* ------------------------------------------------------------ */
-  /*                            helpers                             */
+  /*                         voices + bubbles                       */
   /* ------------------------------------------------------------ */
 
-  /** cls 'auctioneer' = rapid chant (numbers spoken auction-style); 'auct' = normal announcer voice. */
-  private bubbleAuctioneer(text: string, ttl = 1.8, cls: 'auct' | 'auctioneer' = 'auct', interrupt = true, sayDollars = false): void {
-    this.labels.bubble((o) => this.crowd.auctioneer.labelAnchor(o), text, 'auct', ttl, 14);
-    this.hud.auctioneer(text);
-    const chant = cls === 'auctioneer';
-    voice.speak(chantify(text, sayDollars), { pitch: chant ? 1.08 : 1.0, rate: chant ? 1.85 : 1.25, channel: 'auctioneer', interrupt }, 7);
+  /** The auctioneer says a recorded line: speech bubble, caption, talking animation, optional gesture. */
+  private sayAuctioneer(line: PackLine | null, opts: { anim?: string; interrupt?: boolean; hud?: string } = {}): void {
+    const a = this.crowd.auctioneer;
+    if (opts.hud) this.hud.auctioneer(opts.hud);
+    if (!line) return;
+    if (opts.interrupt === false && voiceLines.isBusy('auctioneer')) return;
+    this.labels.bubble((o) => a.labelAnchor(o), line.text, 'auct', Math.min(4.5, Math.max(1.6, line.seconds)), 14, 'auctioneer');
+    if (!opts.hud) this.hud.auctioneer(line.text);
+    if (opts.anim) a.play(opts.anim);
+    a.talk(true);
+    void voiceLines.play(line, 'auctioneer', { interrupt: opts.interrupt }).then((played) => {
+      if (played || !voiceLines.enabled) a.talk(false);
+      else setTimeout(() => a.talk(false), line.seconds * 1000);
+    });
   }
-  private bubbleBot(bot: Bot, text: string, ttl = 1.6, loud = false): void {
-    const f = this.crowd.rivals.get(bot.id); if (!f) return;
-    this.labels.bubble((o) => f.labelAnchor(o), text, '', ttl, 26);
-    voice.speak(text.replace(/[!]+/g, '!'), { pitch: bot.voice.pitch, rate: bot.voice.rate, volume: loud ? 1 : 0.8, channel: 'crowd' }, hashString(bot.id));
+
+  /** Pick which of a rival's models speaks (Rosa does most of the talking for the Rosa & Ray team). */
+  private rivalSpeaker(bot: Bot): { member: number; packId: string } {
+    if (bot.pack.length > 1 && this.talkRng.chance(0.3)) return { member: 1, packId: bot.pack[1] };
+    return { member: 0, packId: bot.pack[0] };
+  }
+  private rivalLine(bot: Bot, kind: string): PackLine | null { return voiceLines.pick(this.talkRng, this.rivalSpeaker(bot).packId, kind); }
+
+  private sayRival(bot: Bot, kind: string, opts: { anim?: 'bid' | 'sulk' | 'flair' | 'cheer'; fallbackText?: string } = {}): void {
+    const f: Actor | undefined = this.crowd.rivals.get(bot.id);
+    if (!f) return;
+    const who = this.rivalSpeaker(bot);
+    const line = voiceLines.pick(this.talkRng, who.packId, kind);
+    if (opts.anim === 'bid') f.bid(who.member);
+    else if (opts.anim === 'sulk') f.sulk(who.member);
+    else if (opts.anim === 'flair') f.flair(who.member);
+    else if (opts.anim === 'cheer') f.cheer();
+    const text = line?.text ?? opts.fallbackText;
+    if (!text) return;
+    this.labels.bubble((o) => f.labelAnchor(o), text, '', Math.min(4, Math.max(1.4, line?.seconds ?? 1.6)), 26, bot.id);
+    if (line) void voiceLines.play(line, 'crowd');
   }
 
   /* ------------------------------------------------------------ */
@@ -469,7 +603,6 @@ export class Game {
   private loop = (): void => {
     requestAnimationFrame(this.loop);
     const dt = this.gs.dt();
-    this.t += dt;
     tickTweens(dt);
     if (this.phase === 'inspect') {
       this.inspectLeft -= dt;
@@ -478,14 +611,18 @@ export class Game {
     }
     if (this.phase === 'auction' && this.auction) {
       this.auction.update(dt);
+      this.auctionClock += dt;
+      // a long silence before the first bid gets the auctioneer pleading
+      if (!this.lullSaid && this.auction.price === 0 && this.auctionClock > 5.5) {
+        this.lullSaid = true;
+        this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'drop'), { anim: 'gesture', interrupt: false });
+      }
       for (const e of this.auction.drain()) this.handleAuctionEvent(e);
       this.lastHudSync += dt;
       if (this.lastHudSync > 0.15) { this.lastHudSync = 0; this.syncAuctionHud(); }
     }
     this.rig.update(dt);
-    this.focus.set(0, 1.2, this.phase === 'auction' ? 1.2 : -1.0);
-    if (this.phase === 'menu') this.focus.set(0, 1.0, -1.2);
-    this.crowd.update(this.t, this.focus);
+    this.crowd.update(dt * clock.scale);
     this.fx.update(dt);
     this.labels.update(dt);
     this.gs.render();

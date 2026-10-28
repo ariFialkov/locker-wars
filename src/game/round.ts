@@ -22,7 +22,7 @@ import { fmt, increment, snap } from '../core/money';
 import { g } from '../core/config';
 import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, easeInOut, linear } from '../core/tween';
 import { loadStats, saveStats, resetStats, pushRound, BAILOUT_AMOUNT, type Stats } from '../core/stats';
-import { generateLocker, resolveLocker, type Locker, type Resolution, type Appraisal } from './lockerGen';
+import { generateLocker, resolveLocker, LOCKER, type Locker, type Resolution, type Appraisal } from './lockerGen';
 import { Auction, type AuctionEvent } from './auction';
 import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
@@ -260,8 +260,13 @@ export class Game {
     this.contents?.dispose();
     this.contents = contents;
     this.hud.showBanner('Door\'s going up…', '');
-    const dustP = new THREE.Vector3(0, 0.2, 0.2);
-    const dust = tween(2.2, (k) => { if (Math.random() < 0.3) this.fx.dustAt(dustP.set((Math.random() - 0.5) * 3, 0.1 + k * 1.5, 0.1), 3); }, linear);
+    // dust spills out from under the door as it lifts, thickest in the first half-metre
+    let lastK = 0, lastT = performance.now();
+    const dust = tween(2.4, (k) => {
+      const now = performance.now(); const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+      const gap = easeInOut(k) * LOCKER.height; const rate = Math.min(1, Math.max(0, (easeInOut(k) - easeInOut(lastK)) / Math.max(1e-3, dt) * 2.2)); lastK = k;
+      if (gap > 0.02) this.fx.doorDust(gap, rate, dt);
+    }, linear);
     await this.door.open();
     await dust;
     this.beginInspection();
@@ -296,7 +301,9 @@ export class Game {
     this.lullSaid = false;
     this.auction = new Auction({ apparentValue: this.locker.apparentValue, bots: this.bots, rng: this.roundRng.fork('auction'), playerBalance: () => this.stats.balance });
     this.auction.start();
-    this.rig.home(); // step back so the bidders are in view
+    // the look-around is over: back out to the default view, controls off, flashlight off
+    this.rig.home(); this.rig.lock();
+    this.gs.setFlashlight(false); this.hud.setFlashlight(false);
     this.hud.showPanel('auction');
     this.hud.showBanner('Auction', 'Tap BID before the hammer falls', null, true);
     this.syncAuctionHud();

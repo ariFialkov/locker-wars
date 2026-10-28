@@ -16,11 +16,30 @@ export type Channel = 'auctioneer' | 'crowd';
 
 interface Playing { src: AudioBufferSourceNode; gain: GainNode; channel: Channel; done: Promise<void> }
 
+/** Per-channel loudness tap, so a character's mouth can follow what it is saying. */
+class LevelTap {
+  readonly node: AnalyserNode;
+  private buf: Float32Array<ArrayBuffer>;
+  constructor(ctx: AudioContext) {
+    this.node = ctx.createAnalyser();
+    this.node.fftSize = 256;
+    this.buf = new Float32Array(this.node.fftSize);
+  }
+  /** RMS of the last few milliseconds, 0..~1. */
+  level(): number {
+    this.node.getFloatTimeDomainData(this.buf);
+    let s = 0;
+    for (let i = 0; i < this.buf.length; i++) s += this.buf[i] * this.buf[i];
+    return Math.sqrt(s / this.buf.length);
+  }
+}
+
 class VoiceLines {
   enabled = true;
   private raw = new Map<string, Promise<ArrayBuffer>>();
   private decoded = new Map<string, Promise<AudioBuffer>>();
   private playing: Playing[] = [];
+  private taps = new Map<Channel, LevelTap>();
 
   /** Fetch line files ahead of time (decoding waits for the audio context). */
   preload(charId: string): void {
@@ -63,6 +82,18 @@ class VoiceLines {
 
   isBusy(channel: Channel): boolean { return this.playing.some((p) => p.channel === channel); }
 
+  /** How loud a channel is right now (0 when nothing plays), for lip-sync. */
+  level(channel: Channel): number {
+    if (!this.isBusy(channel)) return 0;
+    return this.taps.get(channel)?.level() ?? 0;
+  }
+
+  private tap(channel: Channel, ctx: AudioContext, out: AudioNode): AudioNode {
+    let t = this.taps.get(channel);
+    if (!t) { t = new LevelTap(ctx); t.node.connect(out); this.taps.set(channel, t); }
+    return t.node;
+  }
+
   /**
    * Play a line. Resolves when it finishes (or immediately if it was skipped).
    * `interrupt` cuts off whatever the auctioneer is currently saying.
@@ -87,7 +118,7 @@ class VoiceLines {
     if (!buf) return false;
     const src = a.ctx.createBufferSource(); src.buffer = buf;
     const gain = a.ctx.createGain(); gain.gain.value = (opts.volume ?? 1) * (channel === 'crowd' ? 0.95 : 1);
-    src.connect(gain).connect(a.out);
+    src.connect(gain).connect(this.tap(channel, a.ctx, a.out));
     let resolveDone!: () => void;
     const done = new Promise<void>((r) => { resolveDone = r; });
     const entry: Playing = { src, gain, channel, done };

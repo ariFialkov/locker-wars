@@ -86,7 +86,7 @@ export class HUD {
       <div class="rail"><span>Inspection</span><em>Look, don't touch</em></div>
       <div class="rivals-strip"></div>
       <div class="row"><button class="btn flash-btn">${icon('flashlight')} Flashlight</button><button class="btn primary ready-btn"><span class="stack">Ready to bid<small>skip the look</small></span>${icon('chevron', 18)}</button></div>
-      <div class="hint">Drag to look around · pinch or scroll to lean in · what's under the tarps?</div>
+      <div class="hint"><span class="hint-touch">Drag to look around · pinch to lean in</span><span class="hint-keys">Drag or use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to look around · scroll to lean in</span> · what's under the tarps?</div>
     </div>`);
     this.root.appendChild(pi); this.panels.inspect = pi;
     this.flashBtns.push(pi.querySelector('.flash-btn')!);

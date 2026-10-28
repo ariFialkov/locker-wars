@@ -32,10 +32,10 @@ Useful URL flags: `?seed=abc` for a reproducible sequence of lockers, `?q=low|hi
 
 ## How a round plays
 
-1. **Arrival**: the auctioneer calls the unit, bolt cutters snap the padlock (sparks, clank), the roll-up door rattles open.
-2. **Inspection (15 s)**: drag to look around from outside, pinch or scroll to lean in, toggle the hand-held flashlight (a spotlight that follows the camera into the dark unit). Some items sit in plain view, others are under tarps, blankets, in boxes, crates, suitcases, trash bags or a safe.
+1. **Arrival**: the auctioneer calls the unit, bolt cutters snap the padlock (sparks, clank), the roll-up door rattles open. Every round is a different unit: between rounds the camera moves down the row to the next door (B-214, B-215, ...) and the crowd walks along with it.
+2. **Inspection (15 s)**: the camera steps up to the door. Drag, or use W A S D / the arrow keys, to look around; pinch or scroll to lean in; toggle the hand-held flashlight (a spotlight that follows the camera into the dark unit). Some items sit in plain view, others are under tarps, blankets, in boxes, crates, suitcases, trash bags or a safe.
 3. **Auction**: rivals yell bids with speech bubbles and voices, the auctioneer chants asks, prices climb in real auction increments. Bid, jump-bid, or pass. When nobody tops the high bid it goes "once, twice, sold".
-4. **Count-up (15–60 s)**: the camera walks the locker item by item. Covers are pulled off, each item gets a condition stamp (Mint, Worn, Broken, Replica...) and its value rolls into the running total. If a rival won, you get a quick tour of what you missed or dodged.
+4. **Count-up (15–60 s)**: the camera walks the locker item by item, swinging around anything that would hide a small item behind a big one. Covers are pulled off, each item gets a condition stamp (Mint, Worn, Broken, Replica...) and its value rolls into the running total. If a rival won, you get a quick tour of what you missed or dodged.
 5. **Result**: profit or loss, best find, rival quip, and on to the next unit. Progress and analytics persist in `localStorage`.
 
 ## The economics (read this)
@@ -66,6 +66,8 @@ The Stats panel shows theoretical vs realised RTP, the outcome history, value by
 - **Art and voices come from the Locker Wars asset pack** in `assets/pack` (see its `SOURCE.md`): 9 rigged, animated characters, 121 item models, 8 container models, 129 reveal cards and 72 recorded voice lines, all described by the pack's `manifest.json`. The steamer trunk card was rendered in the pack's style by `tools/cards/card.ts`.
 - The build plugin in `vite.config.ts` serves the pack at `./pack/` in development and copies it into `dist/pack`. The service worker caches pack files as they are used instead of precaching all 29 MB.
 - Frame-rate rules for the pack (`src/pack/loader.ts`): models parse one at a time on separate frames with compression decoding in workers, textures are uploaded before a model is first shown, and at most 40 item and container models stay in memory. A locker's models load while its lock is cut, hidden items load while the auctioneer calls "sold", and the next locker loads during the count-up. Every shader is compiled and drawn once behind the menu's loading bar.
+- The auctioneer's mouth moves with his recorded lines: the pack's models have no jaw bone or blend shapes, so `src/render/jaw.ts` builds a jaw morph target at load time (the lower front of the head hinges down) and drives it from the voice channel's loudness.
+- The facility is a row of identical units built one segment at a time (`Facility` in `src/render/scene.ts`); our unit always sits at the origin, and the row slides past a stand-in closed door between rounds, so nothing else in the game has to know which unit we are at.
 - The procedural models, synthesised sound effects and speech synthesis are kept as fallbacks if a pack file fails to load. Sound effects (bolt cutters, door, gavel, cash register, crowd) are still synthesised with the Web Audio API.
 - Two quality tiers (shadow resolution, pixel ratio, flashlight shadows) picked automatically for touch devices; layout adapts to portrait, landscape and safe areas.
 

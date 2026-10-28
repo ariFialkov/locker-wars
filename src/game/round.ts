@@ -8,7 +8,7 @@
  * while the auctioneer calls "sold", and the next locker loads during the count-up.
  */
 import * as THREE from 'three';
-import { GameScene, type Quality } from '../render/scene';
+import { GameScene, UNIT_PITCH, unitLabel, type Quality } from '../render/scene';
 import { RollupDoor } from '../render/door';
 import { Crowd, type Actor } from '../render/crowd';
 import { CameraRig } from '../render/cameraRig';
@@ -20,7 +20,7 @@ import { makeRNG, type RNG } from '../core/rng';
 import { drawOutcome, payoutTarget, type Outcome } from '../core/economy';
 import { fmt, increment, snap } from '../core/money';
 import { g } from '../core/config';
-import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, linear } from '../core/tween';
+import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, easeInOut, linear } from '../core/tween';
 import { loadStats, saveStats, resetStats, pushRound, BAILOUT_AMOUNT, type Stats } from '../core/stats';
 import { generateLocker, resolveLocker, type Locker, type Resolution, type Appraisal } from './lockerGen';
 import { Auction, type AuctionEvent } from './auction';
@@ -33,8 +33,9 @@ import type { PackLine } from '../pack/manifest';
 
 type Phase = 'menu' | 'idle' | 'arrive' | 'inspect' | 'auction' | 'sold' | 'count' | 'result';
 const INSPECT_SECONDS = 15;
-/** Unit numbers the auctioneer names in his intro lines, so the sign over the door agrees with him. */
+/** Unit numbers the auctioneer names in his intro lines: he only uses those at the matching unit. */
 const INTRO_UNITS: Record<string, string> = { intro_1: 'B-214', intro_2: 'C-377' };
+const SLIDE_SECONDS = 2.8;
 
 export class Game {
   readonly gs: GameScene;
@@ -63,6 +64,9 @@ export class Game {
   private prefetched: { n: number; paths: string[] } | null = null;
   private crowdReady = false;
   private shadersWarm = false;
+  /** Round number whose rivals are already standing in their spots (after a walk-over). */
+  private crowdPlacedFor = 0;
+  private keyHintShown = false;
 
   constructor(canvas: HTMLCanvasElement, quality: Quality) {
     this.stats = loadStats();
@@ -71,7 +75,7 @@ export class Game {
     if (seedParam && seedParam !== this.stats.sessionSeed) { this.stats.sessionSeed = seedParam; this.stats.round = 0; }
     this.gs = new GameScene(canvas, quality);
     initPackLoader(this.gs.renderer);
-    this.door = new RollupDoor(this.gs.scene);
+    this.door = new RollupDoor(this.gs.unit);
     this.crowd = new Crowd(this.gs.scene);
     this.rig = new CameraRig(this.gs.camera, canvas);
     this.fx = new FX(this.gs.scene);
@@ -164,10 +168,13 @@ export class Game {
     this.door.resetLock(); this.door.setOpen(1);
     this.gs.setFlashlight(false); this.hud.setFlashlight(false);
     this.gs.interiorBulb.intensity = 2.5;
-    this.gs.setUnitNumber('B-214');
+    // the menu shows the unit the next round will open
+    this.gs.facility.setUnit(this.stats.round + 1);
+    this.gs.setUnitNumber(unitLabel(this.stats.round + 1));
+    this.crowdPlacedFor = 0;
     const showcase = generateLocker('showcase-' + this.stats.sessionSeed, 9);
     this.bots = makeRNG(this.stats.sessionSeed + ':menu').shuffle([...BOTS]).slice(0, 5);
-    const [contents] = await Promise.all([LockerContents.create(this.gs.scene, showcase), this.crowd.setRivals(this.bots)]);
+    const [contents] = await Promise.all([LockerContents.create(this.gs.scene, showcase), this.crowd.setRivals(this.bots, makeRNG(this.stats.sessionSeed + ':menu-spots'))]);
     if (this.phase !== 'menu') { contents.dispose(); return; }
     this.contents?.dispose();
     this.contents = contents;
@@ -213,15 +220,17 @@ export class Game {
     this.roundRng = makeRNG(`${this.stats.sessionSeed}#${n}:round`);
     this.talkRng = makeRNG(`${this.stats.sessionSeed}#${n}:talk`);
     this.locker = generateLocker(this.stats.sessionSeed, n);
-    this.bots = this.roundRng.fork('bots').shuffle([...BOTS]).slice(0, 4);
+    this.bots = this.lineUp(n);
     for (const b of this.bots) for (const id of b.pack) voiceLines.preload(id);
+    this.gs.facility.setUnit(n);
+    this.gs.unit.visible = true;
     // The whole round's fate, decided before anyone sees anything. (See economy.ts.)
     this.outcome = drawOutcome(this.roundRng.fork('outcome'));
     this.playerBidsThisRound = 0;
     // models load while the lock is being cut
     const contentsReady = LockerContents.create(this.gs.scene, this.locker);
     const prev = this.prefetched; this.prefetched = null;
-    await this.crowd.setRivals(this.bots);
+    if (this.crowdPlacedFor !== n) await this.crowd.setRivals(this.bots, this.roundRng.fork('spots'));
     this.labels.clear(); this.nameTags.clear();
     for (const b of this.bots) {
       const f = this.crowd.rivals.get(b.id)!;
@@ -237,8 +246,11 @@ export class Game {
     this.rig.home(); this.rig.lock();
     this.phase = 'arrive';
     this.hud.showBanner(`Locker #${n}`, this.locker.theme.name);
-    const intro = n === 1 ? voiceLines.lines('auctioneer', 'intro').find((l) => l.id === 'intro_1') ?? null : voiceLines.pick(this.talkRng, 'auctioneer', 'intro');
-    this.gs.setUnitNumber(INTRO_UNITS[intro?.id ?? ''] ?? `${'ABCDE'[n % 5]}-${100 + ((n * 137) % 800)}`);
+    const label = unitLabel(n);
+    this.gs.setUnitNumber(label);
+    const intros = voiceLines.lines('auctioneer', 'intro').filter((l) => !INTRO_UNITS[l.id] || INTRO_UNITS[l.id] === label);
+    const named = intros.find((l) => INTRO_UNITS[l.id] === label);
+    const intro = named ?? (intros.length ? this.talkRng.pick(intros) : null);
     this.sayAuctioneer(intro, { anim: 'wave' });
     await wait(0.8);
     this.hud.showBanner('Cutting the lock', this.locker.theme.blurb);
@@ -255,10 +267,16 @@ export class Game {
     this.beginInspection();
   }
 
+  /** Who bids in round `n` (deterministic, so the crowd can be known before the round starts). */
+  private lineUp(n: number): Bot[] {
+    return makeRNG(`${this.stats.sessionSeed}#${n}:round`).fork('bots').shuffle([...BOTS]).slice(0, 4);
+  }
+
   private beginInspection(): void {
     this.phase = 'inspect';
     this.inspectLeft = INSPECT_SECONDS;
-    this.rig.home();
+    this.rig.inspect();
+    if (!this.keyHintShown && matchMedia('(pointer: fine)').matches) { this.keyHintShown = true; this.hud.toast('Look around with the mouse, or W A S D and the arrow keys', 3200); }
     this.hud.showPanel('inspect');
     this.hud.showBanner('Take a look', `${INSPECT_SECONDS}s · no stepping inside`, 1);
     this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'look'), { anim: 'gesture' });
@@ -278,6 +296,7 @@ export class Game {
     this.lullSaid = false;
     this.auction = new Auction({ apparentValue: this.locker.apparentValue, bots: this.bots, rng: this.roundRng.fork('auction'), playerBalance: () => this.stats.balance });
     this.auction.start();
+    this.rig.home(); // step back so the bidders are in view
     this.hud.showPanel('auction');
     this.hud.showBanner('Auction', 'Tap BID before the hammer falls', null, true);
     this.syncAuctionHud();
@@ -424,7 +443,7 @@ export class Game {
       const dur = budget * (weights[i] / wsum);
       const p = this.contents!.worldPos(a.item.uid);
       const fp = this.contents!.footprint(a.item.uid);
-      const camPos = new THREE.Vector3(THREE.MathUtils.clamp(p.x * 0.45, -1.1, 1.1), Math.min(2.3, Math.max(1.25, p.y + fp[1] * 0.45 + 0.95)), Math.min(1.2, p.z + Math.max(2.3, fp[0] * 1.0 + fp[2] * 0.7 + 1.3)));
+      const camPos = this.appraisalCamera(a.item.uid, p, fp);
       this.rig.flyTo(camPos, p.clone().setY(p.y + 0.05));
       this.gs.workLight.position.set(p.x, Math.min(2.4, p.y + fp[1] + 0.7), p.z + 0.5);
       this.contents!.highlight(a.item.uid);
@@ -476,6 +495,30 @@ export class Game {
     this.rig.flyTo(new THREE.Vector3(0, 1.6, 1.4), new THREE.Vector3(0, 1.0, -1.4));
     await wait(quick ? 0.8 : 1.4);
     clock.scale = 1;
+  }
+
+  /**
+   * Where the camera stands to show one item. The default spot is straight in front of it; if
+   * something bigger blocks that view (a wardrobe in front of a small box), the camera swings
+   * around the item, in toward the middle first, then up, until it can see it.
+   */
+  private appraisalCamera(uid: string, p: THREE.Vector3, fp: [number, number, number]): THREE.Vector3 {
+    const base = new THREE.Vector3(THREE.MathUtils.clamp(p.x * 0.45, -1.1, 1.1), Math.min(2.3, Math.max(1.25, p.y + fp[1] * 0.45 + 0.95)), Math.min(1.2, p.z + Math.max(2.3, fp[0] * 1.0 + fp[2] * 0.7 + 1.3)));
+    const c = this.contents!;
+    let best = base, bestScore = c.visibility(uid, base);
+    if (bestScore >= 0.75) return best;
+    const dist = Math.hypot(base.x - p.x, base.z - p.z);
+    const ang0 = Math.atan2(base.x - p.x, base.z - p.z);
+    const side = p.x >= 0 ? -1 : 1; // swing toward the middle of the unit first
+    const tries: [number, number, number][] = [[0.5, 0, 1], [-0.5, 0, 1], [0.9, 0.2, 0.9], [-0.9, 0.2, 0.9], [0, 0.7, 0.85], [0.5, 0.6, 0.8], [-0.5, 0.6, 0.8], [1.3, 0.3, 0.8], [-1.3, 0.3, 0.8]];
+    for (const [yawOff, lift, scale] of tries) {
+      const ang = ang0 + yawOff * side;
+      const cand = new THREE.Vector3(p.x + Math.sin(ang) * dist * scale, Math.min(2.35, base.y + lift), p.z + Math.cos(ang) * dist * scale);
+      if (Math.abs(cand.x) > 1.5 || cand.z > 1.3 || cand.z < -3.0) continue;
+      const score = c.visibility(uid, cand);
+      if (score > bestScore + 0.2) { best = cand; bestScore = score; if (score >= 0.99) break; }
+    }
+    return best;
   }
 
   /** The next locker is deterministic, so its models can load during this count-up. */
@@ -550,8 +593,36 @@ export class Game {
     await wait(0.4);
     await this.door.close();
     this.contents?.dispose(); this.contents = null;
-    await wait(0.4);
+    await wait(0.3);
+    await this.moveDownTheRow();
     void this.startRound();
+  }
+
+  /**
+   * On to the next unit: the row slides one pitch past the camera while the crowd walks along
+   * with it. A stand-in closed door covers our unit while it moves (every closed unit looks
+   * alike), so the real door can simply reappear at the origin wearing the next number.
+   */
+  private async moveDownTheRow(): Promise<void> {
+    const n = this.stats.round + 1;
+    const F = this.gs.facility;
+    this.hud.showBanner('Down the row', `Next up: unit ${unitLabel(n)}`);
+    // a wider, higher shot for the move, so the crowd crosses in front of the doors rather than the lens
+    this.rig.flyTo(new THREE.Vector3(0.3, 2.2, 6.6), new THREE.Vector3(0.2, 1.0, -0.6));
+    this.door.resetLock();
+    F.showStandIn(true);
+    this.gs.unit.visible = false;
+    this.labels.clear(); this.nameTags.clear();
+    const nextBots = this.lineUp(n);
+    for (const b of nextBots) for (const id of b.pack) voiceLines.preload(id);
+    const slide = tween(SLIDE_SECONDS, (k) => F.slide(k), easeInOut);
+    const walk = this.crowd.walkOver(nextBots, UNIT_PITCH, SLIDE_SECONDS, makeRNG(`${this.stats.sessionSeed}#${n}:spots`));
+    await Promise.all([slide, walk]);
+    F.setUnit(n); // re-bases the row: the next unit is now at the origin with its stand-in door hidden
+    this.gs.setUnitNumber(unitLabel(n));
+    this.gs.unit.visible = true;
+    this.bots = nextBots;
+    this.crowdPlacedFor = n;
   }
 
   /* ------------------------------------------------------------ */
@@ -622,7 +693,7 @@ export class Game {
       if (this.lastHudSync > 0.15) { this.lastHudSync = 0; this.syncAuctionHud(); }
     }
     this.rig.update(dt);
-    this.crowd.update(dt * clock.scale);
+    this.crowd.update(dt * clock.scale, -this.gs.facility.row.position.x);
     this.fx.update(dt);
     this.labels.update(dt);
     this.gs.render();

@@ -19,7 +19,7 @@ export class RollupDoor {
   private slatH: number;
   readonly lockPos = new THREE.Vector3(0, 0.42, 0.14);
 
-  constructor(scene: THREE.Scene) {
+  constructor(parent: THREE.Object3D) {
     const W = LOCKER.width, H = LOCKER.height;
     this.slatH = H / SLATS;
     const slatMat = new THREE.MeshStandardMaterial({ color: 0xd0782f, roughness: 0.55, metalness: 0.35 });
@@ -63,7 +63,7 @@ export class RollupDoor {
     this.cutters.visible = false;
     this.group.add(this.cutters);
 
-    scene.add(this.group);
+    parent.add(this.group);
     this.setOpen(0);
   }
 

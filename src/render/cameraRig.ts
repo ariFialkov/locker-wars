@@ -1,4 +1,4 @@
-/** Limited-orbit camera with touch/mouse look, pinch zoom and scripted fly-to. */
+/** Limited-orbit camera with touch/mouse look, WASD/arrow-key look, pinch zoom and scripted fly-to. */
 import * as THREE from 'three';
 
 type Mode = 'orbit' | 'fly' | 'locked' | 'showcase';
@@ -12,8 +12,11 @@ export class CameraRig {
   private curPos = new THREE.Vector3(0, 1.5, 4.4); private curLook = new THREE.Vector3(0, 1.15, -0.9);
   private dragging = false; private lastX = 0; private lastY = 0; private pinchDist = 0;
   private dragMoved = 0;
+  private keys = new Set<string>();
   limits = { yaw: 0.62, pitchMin: -0.2, pitchMax: 0.42, distMin: 2.2, distMax: 5.6 };
   onInteract: (() => void) | null = null;
+  /** Set when the player uses the keyboard to look (so the hint can be retired). */
+  onKeyLook: (() => void) | null = null;
 
   constructor(private camera: THREE.PerspectiveCamera, el: HTMLElement) {
     el.addEventListener('pointerdown', (e) => { if (this.mode !== 'orbit') return; this.dragging = true; this.dragMoved = 0; this.lastX = e.clientX; this.lastY = e.clientY; el.setPointerCapture?.(e.pointerId); });
@@ -38,6 +41,21 @@ export class CameraRig {
         if (e.cancelable) e.preventDefault();
       }
     }, { passive: false });
+    window.addEventListener('keydown', (e) => this.key(e, true));
+    window.addEventListener('keyup', (e) => this.key(e, false));
+    window.addEventListener('blur', () => this.keys.clear());
+  }
+
+  private static KEYS: Record<string, string> = { w: 'up', a: 'left', s: 'down', d: 'right', arrowup: 'up', arrowleft: 'left', arrowdown: 'down', arrowright: 'right', q: 'in', e: 'out' };
+
+  private key(e: KeyboardEvent, down: boolean): void {
+    const k = CameraRig.KEYS[e.key.toLowerCase()];
+    if (!k) return;
+    if (this.mode !== 'orbit') { this.keys.clear(); return; }
+    const t = e.target as HTMLElement | null;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (down) { if (!this.keys.has(k)) { this.keys.add(k); this.onKeyLook?.(); this.onInteract?.(); } } else this.keys.delete(k);
+    e.preventDefault();
   }
 
   private touchDist(e: TouchEvent): number { const a = e.touches[0], b = e.touches[1]; return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); }
@@ -45,8 +63,18 @@ export class CameraRig {
   /** Back to the default spot outside the door. */
   home(instant = false): void {
     this.mode = 'orbit';
+    this.limits = { yaw: 0.62, pitchMin: -0.2, pitchMax: 0.42, distMin: 2.2, distMax: 5.6 };
+    this.target.set(0, 1.1, -0.8);
     this.tYaw = 0; this.tPitch = 0.02; this.tDist = 5.0;
     if (instant) { this.yaw = 0; this.pitch = 0.02; this.dist = 5.0; this.curPos.copy(this.orbitPos()); this.curLook.copy(this.target); }
+  }
+
+  /** Step up to the door for the look-around: closer, aimed into the unit, with more room to turn. */
+  inspect(): void {
+    this.mode = 'orbit';
+    this.limits = { yaw: 0.6, pitchMin: -0.26, pitchMax: 0.4, distMin: 2.0, distMax: 3.8 };
+    this.target.set(0, 1.0, -1.1);
+    this.tYaw = 0; this.tPitch = 0.0; this.tDist = 3.1;
   }
 
   setOrbitTarget(v: THREE.Vector3): void { this.target.copy(v); }
@@ -59,7 +87,7 @@ export class CameraRig {
   /** Nudge the view slightly toward a world point (used so the camera glances at whoever is yelling). */
   glance(worldX: number): void {
     if (this.mode !== 'orbit') return;
-    const push = THREE.MathUtils.clamp(-worldX * 0.03, -0.08, 0.08);
+    const push = THREE.MathUtils.clamp(-worldX * 0.08, -0.22, 0.22);
     this.tYaw = THREE.MathUtils.clamp(this.tYaw + push, -this.limits.yaw, this.limits.yaw);
   }
 
@@ -89,6 +117,15 @@ export class CameraRig {
       this.yaw = yaw; this.tYaw = 0; this.tPitch = 0.02; this.tDist = 5.0;
     } else if (this.mode === 'fly') { wantPos = this.flyPos; wantLook = this.flyLook; }
     else {
+      if (this.keys.size) {
+        const L = this.limits;
+        const turn = ((this.keys.has('left') ? 1 : 0) - (this.keys.has('right') ? 1 : 0)) * 1.3 * dt; // A: look left
+        const tilt = ((this.keys.has('down') ? 1 : 0) - (this.keys.has('up') ? 1 : 0)) * 0.8 * dt; // W: look up (camera dips)
+        const lean = ((this.keys.has('out') ? 1 : 0) - (this.keys.has('in') ? 1 : 0)) * 2.2 * dt;
+        this.tYaw = THREE.MathUtils.clamp(this.tYaw + turn, -L.yaw, L.yaw);
+        this.tPitch = THREE.MathUtils.clamp(this.tPitch + tilt, L.pitchMin, L.pitchMax);
+        this.tDist = THREE.MathUtils.clamp(this.tDist + lean, L.distMin, L.distMax);
+      }
       this.yaw += (this.tYaw - this.yaw) * k; this.pitch += (this.tPitch - this.pitch) * k; this.dist += (this.tDist - this.dist) * k;
       wantPos = this.orbitPos(); wantLook = this.target;
     }

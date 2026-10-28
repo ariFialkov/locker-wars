@@ -111,6 +111,34 @@ export class LockerContents {
     }
   }
 
+  /**
+   * How well an item can be seen from `from`: the share of sample points on it (centre, top,
+   * front) whose line of sight is not blocked by another item or container. 1 = clear view.
+   */
+  visibility(uid: string, from: THREE.Vector3): number {
+    const e = this.entries.get(uid)!;
+    const [w, h, d] = e.placed.fp;
+    const c = this.worldPos(uid);
+    const targets = [c, c.clone().setY(e.placed.y + h * 0.85), c.clone().add(new THREE.Vector3(0, -h * 0.2, Math.min(d, w) * 0.4)), c.clone().setY(e.placed.y + h * 0.3)];
+    const ray = new THREE.Raycaster();
+    // only solid geometry blocks a view: not the highlight halo, and not line/point helpers (which three.js hits within a wide threshold)
+    const others: THREE.Object3D[] = [];
+    for (const o of this.entries.values()) if (o !== e) o.root.traverse((m) => { if ((m as THREE.Mesh).isMesh && !this.inHalo(m)) others.push(m); });
+    let clear = 0;
+    const dir = new THREE.Vector3();
+    for (const t of targets) {
+      dir.copy(t).sub(from);
+      const len = dir.length();
+      ray.set(from, dir.normalize());
+      ray.far = len - 0.02;
+      const hits = ray.intersectObjects(others, false);
+      if (hits.length === 0) clear++;
+    }
+    return clear / targets.length;
+  }
+
+  private inHalo(o: THREE.Object3D): boolean { let p: THREE.Object3D | null = o; while (p) { if (p === this.halo) return true; p = p.parent; } return false; }
+
   worldPos(uid: string, out = new THREE.Vector3()): THREE.Vector3 {
     const e = this.entries.get(uid)!;
     return out.set(e.placed.x, e.placed.y + e.placed.fp[1] * 0.5, e.placed.z);

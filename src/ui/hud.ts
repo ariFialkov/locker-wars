@@ -55,6 +55,7 @@ export class HUD {
   private soundOn = true; private voiceOn = true;
   private revealEl!: HTMLElement;
   private menuLoading: number | null = null;
+  private lockerNo = 0;
 
   constructor() {
     this.root.appendChild(h('<div class="vignette"></div>'));
@@ -82,6 +83,7 @@ export class HUD {
 
     // inspection panel
     const pi = h(`<div class="panel panel-inspect">
+      <div class="rail"><span>Inspection</span><em>Look, don't touch</em></div>
       <div class="rivals-strip"></div>
       <div class="row"><button class="btn flash-btn">${icon('flashlight')} Flashlight</button><button class="btn primary ready-btn"><span class="stack">Ready to bid<small>skip the look</small></span>${icon('chevron', 18)}</button></div>
       <div class="hint">Drag to look around · pinch or scroll to lean in · what's under the tarps?</div>
@@ -92,6 +94,7 @@ export class HUD {
 
     // auction panel
     const pa = h(`<div class="panel panel-auction">
+      <div class="rail"><span>Live auction</span><em class="rail-lot"></em></div>
       <div class="bid-state"><div class="price">$0</div><div class="who">Opening</div></div>
       <div class="bid-buttons"><button class="btn primary main">Bid</button><button class="btn jump1">+</button><button class="btn jump2">+</button></div>
       <div class="row"><button class="btn sq flash-btn" title="Flashlight">${icon('flashlight')}</button><button class="btn danger pass">Pass on this locker</button></div>
@@ -108,6 +111,7 @@ export class HUD {
 
     // count-up panel
     const pc = h(`<div class="panel panel-count">
+      <div class="rail"><span>Appraisal</span><em class="rail-lot"></em></div>
       <div class="item-card"><div class="icon">${icon('look', 22)}</div><div><div class="name">—</div><div class="cond"></div></div><div class="val"></div></div>
       <div class="running"><span>Locker total</span><div><b>$0</b><span class="paid"></span></div></div>
       <div class="progress-dots"></div>
@@ -119,7 +123,7 @@ export class HUD {
     pc.querySelector('.ff')!.addEventListener('click', () => this.onFastForward());
 
     this.resultModal = h('<div class="modal result"><div class="card"></div></div>'); this.root.appendChild(this.resultModal);
-    this.statsModal = h('<div class="modal stats"><div class="card"></div></div>'); this.root.appendChild(this.statsModal);
+    this.statsModal = h('<div class="modal stats"><div class="card steel"></div></div>'); this.root.appendChild(this.statsModal);
     this.menu = h('<div class="menu hidden"></div>'); this.root.appendChild(this.menu);
     this.wireToggles();
   }
@@ -142,7 +146,11 @@ export class HUD {
     this.balanceShown = n;
     this.balanceEl.textContent = fmt(n);
   }
-  setLocker(n: number, theme: string, blurb: string): void { this.lockerEl.textContent = `Locker #${n} · ${theme}`; this.themeEl.textContent = blurb; }
+  setLocker(n: number, theme: string, blurb: string): void {
+    this.lockerEl.textContent = `Locker #${n} · ${theme}`; this.themeEl.textContent = blurb;
+    this.lockerNo = n;
+    for (const el of this.root.querySelectorAll('.rail-lot')) el.textContent = `Lot ${n}`;
+  }
   setSound(on: boolean): void { this.soundOn = on; for (const b of this.soundBtns) { b.innerHTML = icon(on ? 'soundOn' : 'soundOff'); b.classList.toggle('off', !on); } }
   setVoice(on: boolean): void { this.voiceOn = on; for (const b of this.voiceBtns) { b.innerHTML = icon(on ? 'voiceOn' : 'voiceOff'); b.classList.toggle('off', !on); } }
   setFlashlight(on: boolean): void { for (const b of this.flashBtns) b.classList.toggle('on', on); }
@@ -242,33 +250,37 @@ export class HUD {
   showResult(r: ResultData): void {
     const card = this.resultModal.querySelector('.card')!;
     const profit = r.value - r.paid;
-    let title = '', cls = '';
+    let title = '', cls = '', stamp = '';
     if (r.kind === 'won') {
-      title = profit >= 0 ? (r.tier === 'jackpot' ? 'Jackpot locker' : r.tier === 'huge' ? 'Huge score' : r.tier === 'big' ? 'Big score' : 'Profit') : (r.tier === 'bust' ? 'Junk locker' : 'That hurt');
+      title = profit >= 0 ? (r.tier === 'jackpot' ? 'Jackpot locker' : r.tier === 'huge' ? 'Huge score' : r.tier === 'big' ? 'Big score' : 'In the black') : (r.tier === 'bust' ? 'Junk locker' : 'In the red');
       cls = profit >= 0 ? (r.tier === 'big' || r.tier === 'huge' || r.tier === 'jackpot' ? 'gold' : 'good') : 'bad';
-    }
-    else { title = r.kind === 'passed' ? 'You passed' : `${r.winnerName} takes it`; }
+      stamp = profit >= 0 ? 'Profit' : 'Loss';
+    } else { title = r.kind === 'passed' ? 'You passed' : `${r.winnerName} takes it`; stamp = r.kind === 'passed' ? 'Passed' : 'Outbid'; cls = r.value - r.paid > 0 ? 'bad' : 'good'; }
     const missed = r.value - r.paid;
     const bestHtml = r.best ? `<div class="best"><img src="${itemCard(r.best.def.id)}" alt=""><div><span class="t-label">Best find</span><b>${r.best.def.name}</b><small>${r.best.revealed ? 'Was hidden · ' : ''}${r.best.condition.label}</small><em>${fmt(r.best.value)}</em></div></div>` : '';
     const quipHtml = r.quip ? `<div class="quote"><b>${r.quip.who}</b> “${r.quip.text}”</div>` : '';
     const tierBadge = r.tier ? `<span class="badge ${r.tier}">${TIER_LABEL[r.tier]}</span>` : '';
-    let body = '';
+    let lines = '', note = '';
     if (r.kind === 'won') {
-      body = `<div class="kpis">
-        <div class="kpi"><span>Paid</span><b>${fmt(r.paid)}</b></div>
-        <div class="kpi"><span>Worth</span><b class="gold">${fmt(r.value)}</b></div>
-        <div class="kpi"><span>Net</span><b class="${profit >= 0 ? 'good' : 'bad'}">${fmtSigned(profit)}</b></div>
-      </div><p>Return ×${r.multiplier.toFixed(2)} ${tierBadge}</p>`;
+      lines = `<div class="ln"><span>Hammer price</span><b>${fmt(r.paid)}</b></div>
+        <div class="ln"><span>Appraised contents</span><b class="gold">${fmt(r.value)}</b></div>
+        <div class="ln total"><span>Net</span><b class="${profit >= 0 ? 'good' : 'bad'}">${fmtSigned(profit)}</b></div>`;
+      note = `<p>Return ×${r.multiplier.toFixed(2)} ${tierBadge}</p>`;
     } else {
       const better = missed > 0;
-      body = `<div class="kpis">
-        <div class="kpi"><span>Sold for</span><b>${fmt(r.paid)}</b></div>
-        <div class="kpi"><span>Was worth</span><b class="gold">${fmt(r.value)}</b></div>
-        <div class="kpi"><span>${better ? 'You missed' : 'You dodged'}</span><b class="${better ? 'bad' : 'good'}">${fmt(Math.abs(missed))}</b></div>
-      </div><p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`} You could have taken it for <b>${fmt(r.couldHaveHadFor)}</b>.</p>`;
+      lines = `<div class="ln"><span>Sold for</span><b>${fmt(r.paid)}</b></div>
+        <div class="ln"><span>Appraised contents</span><b class="gold">${fmt(r.value)}</b></div>
+        <div class="ln total"><span>${better ? 'You missed' : 'You dodged'}</span><b class="${better ? 'bad' : 'good'}">${fmt(Math.abs(missed))}</b></div>`;
+      note = `<p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`} You could have taken it for <b>${fmt(r.couldHaveHadFor)}</b>.</p>`;
     }
-    const brokeHtml = r.broke ? `<p><b style="color:var(--bad)">You're out of cash.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : '';
-    card.innerHTML = `<h1 class="${cls}">${title}</h1>${body}${bestHtml}${quipHtml}${brokeHtml}
+    const brokeHtml = r.broke ? `<p><b style="color:#b4321f">You're out of cash.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : '';
+    card.className = 'card receipt';
+    card.innerHTML = `<div class="rc-head"><span>Lot receipt</span><em>Locker #${this.lockerNo}</em></div>
+      <div class="rc-body">
+        <div class="verdict"><h1>${title}</h1><span class="stamp ${cls}">${stamp}</span></div>
+        <div class="lines">${lines}</div>
+        ${note}${bestHtml}${quipHtml}${brokeHtml}
+      </div>
       <div class="actions">${r.broke ? '<button class="btn gold bail">Take the loan</button>' : `<button class="btn primary next">Next locker ${icon('chevron', 18)}</button>`}<button class="btn sq stats" title="Stats">${icon('stats')}</button><button class="btn sq to-menu" title="Main menu">${icon('home')}</button></div>`;
     card.querySelector('.next')?.addEventListener('click', () => { this.resultModal.classList.remove('show'); this.onNext(); });
     card.querySelector('.bail')?.addEventListener('click', () => { this.resultModal.classList.remove('show'); this.onBailout(); });
@@ -291,7 +303,7 @@ export class HUD {
       <div class="menu-cta">
         <button class="btn primary hero start" ${this.menuLoading !== null ? 'disabled' : ''}>${icon('play', 20)} <span class="start-label">${this.menuLoading !== null ? 'Loading the crowd…' : returning ? 'Back to the lot' : 'Start bidding'}</span></button>
         <div class="load-bar" ${this.menuLoading === null ? 'hidden' : ''}><i style="transform:scaleX(${this.menuLoading ?? 0})"></i></div>
-        <div class="meta"><span>Bankroll</span><b>${fmt(stats.balance)}</b><span>·</span><span>Locker #${stats.round + 1} is next</span></div>
+        <div class="meta"><span>Bankroll</span><b>${fmt(stats.balance)}</b><span>Next</span><b>Locker #${stats.round + 1}</b></div>
       </div>
       <div class="menu-side">
         <div class="mcard rivals"><h3>${icon('users', 16)} Today's rivals</h3>${bots.map((b) => `<div class="mrival"><i class="dot" style="background:${cssColor(b.color)}"></i><div>${b.name}<small>${b.intro}</small></div></div>`).join('')}</div>

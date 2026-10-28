@@ -128,7 +128,7 @@ export class Game {
     const H = this.hud;
     H.onStart = () => { sfx.unlock(); voiceLines.warm(); void this.leaveMenu(); };
     H.onMenu = () => { void this.backToMenu(); };
-    H.onFlashlight = () => { sfx.click(); this.gs.setFlashlight(!this.gs.flashlightOn); H.setFlashlight(this.gs.flashlightOn); };
+    H.onFlashlight = () => { if (this.phase !== 'inspect') return; sfx.click(); this.gs.setFlashlight(!this.gs.flashlightOn); H.setFlashlight(this.gs.flashlightOn); };
     H.onReady = () => { if (this.phase === 'inspect') this.inspectLeft = 0; };
     H.onBid = (amount) => this.playerBid(amount);
     H.onPass = () => { if (this.auction && this.phase === 'auction') { sfx.click(); this.auction.playerFold(); H.toast('You passed. Watching the crowd finish it…'); this.syncAuctionHud(); } };
@@ -263,7 +263,7 @@ export class Game {
     // dust spills out from under the door as it lifts, thickest in the first half-metre
     let lastK = 0, lastT = performance.now();
     const dust = tween(2.4, (k) => {
-      const now = performance.now(); const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+      const now = performance.now(); const dt = Math.min(0.25, (now - lastT) / 1000); lastT = now;
       const gap = easeInOut(k) * LOCKER.height; const rate = Math.min(1, Math.max(0, (easeInOut(k) - easeInOut(lastK)) / Math.max(1e-3, dt) * 2.2)); lastK = k;
       if (gap > 0.02) this.fx.doorDust(gap, rate, dt);
     }, linear);
@@ -279,6 +279,7 @@ export class Game {
 
   private beginInspection(): void {
     this.phase = 'inspect';
+    this.fx.settleDust(1.1); // the air clears as you step up to look
     this.inspectLeft = INSPECT_SECONDS;
     this.rig.inspect();
     if (!this.keyHintShown && matchMedia('(pointer: fine)').matches) { this.keyHintShown = true; this.hud.toast('Look around with the mouse, or W A S D and the arrow keys', 3200); }
@@ -682,6 +683,12 @@ export class Game {
     requestAnimationFrame(this.loop);
     const dt = this.gs.dt();
     tickTweens(dt);
+    // the look-around belongs to the inspection only: outside it the camera is never player-driven
+    // and the flashlight is never on, whichever way the phase changed
+    if (this.phase !== 'inspect') {
+      if (this.rig.looking) { this.rig.home(); this.rig.lock(); }
+      if (this.gs.flashlightOn) { this.gs.setFlashlight(false); this.hud.setFlashlight(false); }
+    }
     if (this.phase === 'inspect') {
       this.inspectLeft -= dt;
       this.hud.setBannerProgress(this.inspectLeft / INSPECT_SECONDS, `${Math.max(0, Math.ceil(this.inspectLeft))}s · no stepping inside`);

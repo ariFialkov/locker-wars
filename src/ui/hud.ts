@@ -97,7 +97,7 @@ export class HUD {
       <div class="rail"><span>Live auction</span><em class="rail-lot"></em></div>
       <div class="bid-state"><div class="price">$0</div><div class="who">Opening</div></div>
       <div class="bid-buttons"><button class="btn primary main">Bid</button><button class="btn jump1">+</button><button class="btn jump2">+</button></div>
-      <div class="row"><button class="btn sq flash-btn" title="Flashlight">${icon('flashlight')}</button><button class="btn danger pass">Pass on this locker</button></div>
+      <div class="row"><button class="btn danger pass">Pass on this locker</button></div>
       <div class="rivals-strip"></div>
     </div>`);
     this.root.appendChild(pa); this.panels.auction = pa;
@@ -106,7 +106,6 @@ export class HUD {
     this.rivalsStrip = pa.querySelector('.rivals-strip')!;
     for (const b of [this.bidMain, this.bidJ1, this.bidJ2]) b.addEventListener('click', () => this.onBid(Number(b.dataset.amount)));
     this.passBtn.addEventListener('click', () => this.onPass());
-    this.flashBtns.push(pa.querySelector('.flash-btn')!);
     for (const b of this.flashBtns) b.addEventListener('click', () => this.onFlashlight());
 
     // count-up panel

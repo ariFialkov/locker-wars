@@ -42,6 +42,12 @@ describe('choosing the math backend', () => {
     expect(() => resolveMathConfig({}, '?server=https://m.example')).toThrow(/client code/);
     expect(() => resolveMathConfig({ VITE_ROLLERZ_CLIENT_CODE: 'c' }, '')).toThrow(/math server URL/);
   });
+  it('a test math server with ?rgs= (or VITE_RGS_URL)', () => {
+    expect(resolveMathConfig({}, '?rgs=http%3A%2F%2F127.0.0.1%3A8790')).toEqual({ mode: 'server', url: 'http://127.0.0.1:8790' });
+    expect(resolveMathConfig({ VITE_RGS_URL: 'https://math.example' }, '')).toEqual({ mode: 'server', url: 'https://math.example' });
+    expect(() => resolveMathConfig({}, '?rgs=javascript:alert(1)')).toThrow(MathConfigError);
+    expect(() => resolveMathConfig({ VITE_ROLLERZ_CLIENT_CODE: 'c', VITE_ROLLERZ_SERVER_URL: 's' }, '?rgs=http://x')).toThrow(MathConfigError);
+  });
   it('a platform build cannot be switched to a test mode from the URL', () => {
     const env = { VITE_ROLLERZ_CLIENT_CODE: 'c', VITE_ROLLERZ_SERVER_URL: 's' };
     expect(() => resolveMathConfig(env, '?math=practice')).toThrow(MathConfigError);

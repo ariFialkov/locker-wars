@@ -49,13 +49,21 @@ Every money decision is made by the math server, not by the game. The game sends
 
 ### Platform vs practice
 
-`src/math` has one interface and three implementations:
+`src/math` has one interface and four implementations:
 
 - **Rollerz platform** (`src/math/rollerz.ts`): bets go through the official Rollerz SDK (`@rollerz/sdk`, pinned, MIT) and its generic provider: `RollerzSDK.init(gameId)`, `gp.configureBetTypes([BID_1 … BID_6, BUY_NOW])`, `gp.openGame({ serverUrl, internalClientCode })`, `gp.placeBet(amount, { betType })`, `gp.collect(roundId)`. The SDK routes them through the Rollerz bridge to the RGS backend, which calls the auction math server. Results are read from the bet response's top level or from its `math` field.
+- **Test server** (`?rgs=<server URL>`, `src/math/server.ts`): bets go over HTTP to a math server that holds the session, the balance and every random draw, through the same routes the Rollerz SDK uses (`open`, `valid-bets`, `bet`, `collect`). `scripts/math-server.mjs` is such a server, running the auction engine from a clone of its repository. It ignores any seed a client sends. This is the platform's shape without Rollerz in the middle:
+
+  ```bash
+  git clone https://github.com/Danvid1009/gnarone-game-math.git ../gnarone-game-math
+  npm run math-server -- ../gnarone-game-math 8790
+  npm run dev        # then open http://localhost:5173/?rgs=http://localhost:8790
+  ```
+
 - **Test engine** (`src/math/engine.ts`, the default until the platform is configured): the auction math engine's own published browser module, loaded at runtime from `https://danvid1009.github.io/gnarone-game-math/auction/api/rgs.js`. It is the real math and the real wire format, but it rolls in the player's browser with test credits, so it is for testing, not release. Whatever is published at that URL is what runs.
 - **Practice** (`?math=practice`, `src/math/practice.ts`): offline play credits with the same wire format and the documented storage-preset numbers, for when the engine URL is unreachable.
 
-Bailouts exist only in the two test modes, and both are labelled in the menu.
+Bailouts exist only in the browser test modes. Every test mode is labelled in the menu.
 
 The platform is used when the client code and math server URL are configured, at build time or in the page URL:
 
@@ -67,7 +75,7 @@ The platform is used when the client code and math server URL are configured, at
 | Server path (optional) | `VITE_ROLLERZ_PATH` | |
 | Raise stages (default 6) | `VITE_ROLLERZ_STAGES` | |
 
-A half-configured platform shows an error instead of falling back to a test mode, and a platform build refuses `?math=practice` and `?math=engine`, so real play can never end up rolling in the browser. `VITE_ENGINE_URL` points the test engine at another copy of the module (for example a local one).
+A half-configured platform shows an error instead of falling back to a test mode, and a platform build refuses `?math=practice`, `?math=engine` and `?rgs=`, so real play can never end up rolling in the browser. `VITE_ENGINE_URL` points the test engine at another copy of the module (for example a local one).
 
 The Stats panel shows the locker return and your realised return, the outcome history, value by item category, top finds, head-to-head records against each rival, bankroll curve, streaks, hidden vs visible value found, replicas spotted, and more.
 
@@ -87,14 +95,14 @@ The Stats panel shows the locker return and your realised return, the outcome hi
 ```
 assets/pack     asset pack: characters, voice lines, item and container models, cards (see assets/pack/SOURCE.md)
 src/pack        pack manifest access, model loader, recorded voice-line player
-src/math        math client: Rollerz SDK (platform), test engine and practice backends, response parsing
+src/math        math client: Rollerz SDK (platform), test server, test engine and practice backends, response parsing
 src/core        rng, money formatting, outcome tiers, stats persistence, tween system
 src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, raise-by-raise auction presentation, round orchestrator
 src/render      scene & environment, roll-up door + lock cutting, animated crowd, camera rig, particles, locker contents
 src/audio       synthesised SFX, voices
 src/ui          HUD panels, modals, stats dashboard, 3D-anchored labels/speech bubbles
 test            vitest suites for the math clients, response parsing, the raise auction and the locker generator
-scripts         icon generator, item catalog generator, headless walkthrough
+scripts         icon generator, item catalog generator, headless walkthrough and transition check, test math server
 tools           dev-only pages: item catalog data, reveal-card renderer
 ```
 

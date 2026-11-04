@@ -3,14 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Locker Wars — a casual 3D storage-auction betting game (PWA)",
+  "description": "Locker Wars \u2014 a casual 3D storage-auction betting game (PWA)",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
     "icons": "node scripts/gen-icons.mjs",
-    "catalog": "node scripts/item-catalog.mjs"
+    "catalog": "node scripts/item-catalog.mjs",
+    "math-server": "node scripts/math-server.mjs"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.3.0",

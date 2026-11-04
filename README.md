@@ -49,22 +49,25 @@ Every money decision is made by the math server, not by the game. The game sends
 
 ### Platform vs practice
 
-`src/math` has one interface and two implementations:
+`src/math` has one interface and three implementations:
 
 - **Rollerz platform** (`src/math/rollerz.ts`): bets go through the official Rollerz SDK (`@rollerz/sdk`, pinned, MIT) and its generic provider: `RollerzSDK.init(gameId)`, `gp.configureBetTypes([BID_1 … BID_6, BUY_NOW])`, `gp.openGame({ serverUrl, internalClientCode })`, `gp.placeBet(amount, { betType })`, `gp.collect(roundId)`. The SDK routes them through the Rollerz bridge to the RGS backend, which calls the auction math server. Results are read from the bet response's top level or from its `math` field.
-- **Practice** (`src/math/practice.ts`): play credits, settled in the browser, with the same wire format and the documented storage-preset numbers. It exists so the game is playable and testable without a platform session, and it is labelled "Practice credits" in the menu. Bailouts exist only here.
+- **Test engine** (`src/math/engine.ts`, the default until the platform is configured): the auction math engine's own published browser module, loaded at runtime from `https://danvid1009.github.io/gnarone-game-math/auction/api/rgs.js`. It is the real math and the real wire format, but it rolls in the player's browser with test credits, so it is for testing, not release. Whatever is published at that URL is what runs.
+- **Practice** (`?math=practice`, `src/math/practice.ts`): offline play credits with the same wire format and the documented storage-preset numbers, for when the engine URL is unreachable.
 
-The platform is used when it is configured, at build time or in the page URL:
+Bailouts exist only in the two test modes, and both are labelled in the menu.
+
+The platform is used when the client code and math server URL are configured, at build time or in the page URL:
 
 | Setting | Build variable | URL parameter |
 |---|---|---|
-| Game id | `VITE_ROLLERZ_GAME_ID` | `game` |
+| Game id (default `b6f0701f-fdb7-4139-8e50-c7a962e67a65`) | `VITE_ROLLERZ_GAME_ID` | `game` |
 | Internal client code | `VITE_ROLLERZ_CLIENT_CODE` | `client` |
 | Math server URL | `VITE_ROLLERZ_SERVER_URL` | `server` (read by the SDK) |
 | Server path (optional) | `VITE_ROLLERZ_PATH` | |
 | Raise stages (default 6) | `VITE_ROLLERZ_STAGES` | |
 
-A half-configured platform shows an error instead of falling back to practice, and a platform build refuses `?math=practice`, so real play can never end up rolling in the browser.
+A half-configured platform shows an error instead of falling back to a test mode, and a platform build refuses `?math=practice` and `?math=engine`, so real play can never end up rolling in the browser. `VITE_ENGINE_URL` points the test engine at another copy of the module (for example a local one).
 
 The Stats panel shows the locker return and your realised return, the outcome history, value by item category, top finds, head-to-head records against each rival, bankroll curve, streaks, hidden vs visible value found, replicas spotted, and more.
 
@@ -84,7 +87,7 @@ The Stats panel shows the locker return and your realised return, the outcome hi
 ```
 assets/pack     asset pack: characters, voice lines, item and container models, cards (see assets/pack/SOURCE.md)
 src/pack        pack manifest access, model loader, recorded voice-line player
-src/math        math client: Rollerz SDK (platform) and practice backends, response parsing
+src/math        math client: Rollerz SDK (platform), test engine and practice backends, response parsing
 src/core        rng, money formatting, outcome tiers, stats persistence, tween system
 src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, raise-by-raise auction presentation, round orchestrator
 src/render      scene & environment, roll-up door + lock cutting, animated crowd, camera rig, particles, locker contents

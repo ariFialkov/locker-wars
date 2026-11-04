@@ -24,7 +24,7 @@ import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, easeInOut, li
 import { loadStats, saveStats, resetStats, pushRound, BAILOUT_AMOUNT, type Stats } from '../core/stats';
 import { generateLocker, resolveLocker, settleExact, LOCKER, type Locker, type Resolution, type Appraisal } from './lockerGen';
 import { RaiseAuction, type RaiseEvent } from './raise';
-import { createMathClient, PracticeClient, MathConfigError, BUY_NOW, type MathClient, type MathSession, type RaiseResult } from '../math';
+import { createMathClient, PracticeClient, EngineClient, MathConfigError, BUY_NOW, type MathClient, type MathSession, type RaiseResult } from '../math';
 import { lockerTable, lockerMultiplier, STORAGE_PRESET } from '../math/practice';
 import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
@@ -185,9 +185,12 @@ export class Game {
     };
     H.onFastForward = () => { clock.scale = clock.scale > 1 ? 1 : 4; H.toast(clock.scale > 1 ? 'Fast-forward ×4' : 'Normal speed', 900); };
     H.onNext = () => this.nextRound();
-    H.onBailout = () => {
-      if (!(this.math instanceof PracticeClient)) return; // platform money can't be topped up from the game
-      this.stats.bailouts++; this.syncBalance(this.math.topUp(toMinor(BAILOUT_AMOUNT))); void this.nextRound();
+    H.onBailout = async () => {
+      // test credits only: platform money can't be topped up from the game
+      if (this.math instanceof PracticeClient) this.syncBalance(this.math.topUp(toMinor(BAILOUT_AMOUNT)));
+      else if (this.math instanceof EngineClient) this.syncBalance(await this.math.topUp(toMinor(BAILOUT_AMOUNT), toMinor(this.stats.balance)));
+      else return;
+      this.stats.bailouts++; void this.nextRound();
     };
     H.onToggleSound = () => {
       this.stats.settings.sound = !this.stats.settings.sound;
@@ -735,7 +738,7 @@ export class Game {
     const broke = toMinor(s.balance) < minChip;
     this.hud.showPanel(null);
     this.hud.showBanner(playerWon ? (value >= amount ? 'Profit' : 'Loss') : 'Next time', '');
-    this.hud.showResult({ kind: playerWon ? 'won' : playerBids > 0 ? 'lost' : 'passed', winnerName: who ? BOT_BY_ID[who]?.name ?? 'Nobody' : 'Nobody', paid: amount, value, multiplier, tier: playerWon ? tier : null, best, quip, broke, canBailout: this.math instanceof PracticeClient });
+    this.hud.showResult({ kind: playerWon ? 'won' : playerBids > 0 ? 'lost' : 'passed', winnerName: who ? BOT_BY_ID[who]?.name ?? 'Nobody' : 'Nobody', paid: amount, value, multiplier, tier: playerWon ? tier : null, best, quip, broke, canBailout: this.math instanceof PracticeClient || this.math instanceof EngineClient });
   }
 
   private async nextRound(): Promise<void> {

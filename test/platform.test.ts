@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseRaise, MathResponseError } from '../src/math/parse';
-import { resolveMathConfig, MathConfigError } from '../src/math/index';
+import { resolveMathConfig, MathConfigError, ROLLERZ_GAME_ID, ENGINE_URL } from '../src/math/index';
 import { RollerzClient, type RollerzSDKLike } from '../src/math/rollerz';
 
 const envelope = { roundId: 'r1', balance: 99000, totalBetAmount: 1000, nextAction: ['COLLECT'] };
@@ -25,22 +25,27 @@ describe('reading bet responses', () => {
 });
 
 describe('choosing the math backend', () => {
-  it('practice when nothing platform-related is configured', () => {
-    expect(resolveMathConfig({}, '').mode).toBe('practice');
+  it('the published math engine (test mode) when nothing platform-related is configured', () => {
+    expect(resolveMathConfig({}, '')).toEqual({ mode: 'engine', url: ENGINE_URL });
+    expect(resolveMathConfig({ VITE_ENGINE_URL: 'http://127.0.0.1:8799/rgs.js' }, '')).toEqual({ mode: 'engine', url: 'http://127.0.0.1:8799/rgs.js' });
   });
-  it('platform when game id, client code and server are all present (build env or URL)', () => {
-    const a = resolveMathConfig({ VITE_ROLLERZ_GAME_ID: 'locker-wars', VITE_ROLLERZ_CLIENT_CODE: 'abc', VITE_ROLLERZ_SERVER_URL: 'https://math.example/auction' }, '');
-    expect(a).toMatchObject({ mode: 'platform', cfg: { gameId: 'locker-wars', internalClientCode: 'abc', serverUrl: 'https://math.example/auction', stages: 6 } });
-    const b = resolveMathConfig({}, '?game=g&client=c&server=https%3A%2F%2Fm.example');
-    expect(b.mode).toBe('platform');
+  it('offline practice credits with ?math=practice', () => {
+    expect(resolveMathConfig({}, '?math=practice').mode).toBe('practice');
   });
-  it('a half-configured platform is an error, never a silent fallback to practice', () => {
-    expect(() => resolveMathConfig({}, '?server=https://m.example')).toThrow(MathConfigError);
-    expect(() => resolveMathConfig({ VITE_ROLLERZ_GAME_ID: 'g' }, '')).toThrow(/client code/);
-    expect(() => resolveMathConfig({ VITE_ROLLERZ_GAME_ID: 'g', VITE_ROLLERZ_CLIENT_CODE: 'c' }, '')).toThrow(/math server URL/);
+  it('platform when the client code and server are present, with Locker Wars\' game id by default', () => {
+    const a = resolveMathConfig({ VITE_ROLLERZ_CLIENT_CODE: 'abc', VITE_ROLLERZ_SERVER_URL: 'https://math.example/auction' }, '');
+    expect(a).toMatchObject({ mode: 'platform', cfg: { gameId: ROLLERZ_GAME_ID, internalClientCode: 'abc', serverUrl: 'https://math.example/auction', stages: 6 } });
+    expect(ROLLERZ_GAME_ID).toBe('b6f0701f-fdb7-4139-8e50-c7a962e67a65');
+    expect(resolveMathConfig({}, '?client=c&server=https%3A%2F%2Fm.example').mode).toBe('platform');
   });
-  it('a platform build cannot be switched to practice from the URL', () => {
-    expect(() => resolveMathConfig({ VITE_ROLLERZ_GAME_ID: 'g', VITE_ROLLERZ_CLIENT_CODE: 'c', VITE_ROLLERZ_SERVER_URL: 's' }, '?math=practice')).toThrow(MathConfigError);
+  it('a half-configured platform is an error, never a silent fallback', () => {
+    expect(() => resolveMathConfig({}, '?server=https://m.example')).toThrow(/client code/);
+    expect(() => resolveMathConfig({ VITE_ROLLERZ_CLIENT_CODE: 'c' }, '')).toThrow(/math server URL/);
+  });
+  it('a platform build cannot be switched to a test mode from the URL', () => {
+    const env = { VITE_ROLLERZ_CLIENT_CODE: 'c', VITE_ROLLERZ_SERVER_URL: 's' };
+    expect(() => resolveMathConfig(env, '?math=practice')).toThrow(MathConfigError);
+    expect(() => resolveMathConfig(env, '?math=engine')).toThrow(MathConfigError);
   });
 });
 

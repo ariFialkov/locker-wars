@@ -38,7 +38,7 @@ export interface AuctionView {
   walked: boolean;
 }
 
-export interface MathInfo { mode: 'platform' | 'practice'; rtp: number | null; error: string | null }
+export interface MathInfo { mode: 'platform' | 'engine' | 'practice'; rtp: number | null; error: string | null }
 
 const h = (html: string): HTMLElement => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild as HTMLElement; };
 const cssColor = (c: number) => '#' + c.toString(16).padStart(6, '0');
@@ -312,7 +312,7 @@ export class HUD {
         <div class="ln total"><span>${better ? 'You missed' : 'You dodged'}</span><b class="${better ? 'bad' : 'good'}">${fmt(Math.abs(missed))}</b></div>`;
       note = `<p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`}</p>`;
     }
-    const brokeHtml = !r.broke ? '' : r.canBailout ? `<p><b style="color:#b4321f">You're out of play credits.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : `<p><b style="color:#b4321f">Your balance can't cover the smallest opening bid.</b></p>`;
+    const brokeHtml = !r.broke ? '' : r.canBailout ? `<p><b style="color:#b4321f">You're out of test credits.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : `<p><b style="color:#b4321f">Your balance can't cover the smallest opening bid.</b></p>`;
     card.className = 'card receipt';
     card.innerHTML = `<div class="rc-head"><span>Lot receipt</span><em>Locker #${this.lockerNo}</em></div>
       <div class="rc-body">
@@ -355,7 +355,7 @@ export class HUD {
         </div></div>
       </div>
       <div class="menu-foot">
-        <span class="tiny">${this.mathInfo.error ? '' : this.mathInfo.mode === 'platform' ? 'Every raise is settled by the Rollerz platform.' : '<b class="practice-tag">Practice credits</b> Settled in this browser, not the platform.'}</span>
+        <span class="tiny">${this.mathInfo.error ? '' : this.mathInfo.mode === 'platform' ? 'Every raise is settled by the Rollerz platform.' : this.mathInfo.mode === 'engine' ? '<b class="practice-tag">Test engine</b> The real auction math, run in this browser. Test credits.' : '<b class="practice-tag">Practice credits</b> Settled in this browser, not the platform.'}</span>
         <button class="ibtn m-stats" title="Stats">${icon('stats')}</button>
         <button class="ibtn m-sound" title="Sound">${icon(this.soundOn ? 'soundOn' : 'soundOff')}</button>
         <button class="ibtn m-voice" title="Voices">${icon(this.voiceOn ? 'voiceOn' : 'voiceOff')}</button>
@@ -414,7 +414,7 @@ export class HUD {
           <div class="bar"><span>Your realised return</span><div class="track"><i class="${rtp !== null && target !== null && rtp >= target ? 'good' : ''}" style="width:${Math.min(100, (rtp ?? 0) * 100 / 1.2)}%"></i></div><span class="v">${rtp === null ? '—' : (rtp * 100).toFixed(1) + '%'}</span></div>
           <div class="bar"><span>Paid / contents</span><div class="track"></div><span class="v">${fmt(s.totalSpent)} / ${fmt(s.totalEarned)}</span></div>
         </div>
-        <p class="fairness">${this.mathInfo.mode === 'platform' ? 'Every raise is a bet placed with the Rollerz platform, which draws every result on its servers.' : 'Practice mode: play credits, with results drawn in this browser using the same rules as the platform.'} Each raise either gets outbid, and your bid comes back in full, or wins the locker. The rivals thin out as the price climbs, so the higher you go the less likely you are to be outbid. A won locker's contents are a one-shot draw${target !== null ? ` averaging ${Math.round(target * 100)}% of the price you paid` : ''}. Being outbid costs nothing; the edge is only in lockers you win. The rivals, their bids and the auctioneer are theatre around those results.</p>`;
+        <p class="fairness">${this.mathInfo.mode === 'platform' ? 'Every raise is a bet placed with the Rollerz platform, which draws every result on its servers.' : this.mathInfo.mode === 'engine' ? 'Test mode: the auction math engine runs in this browser with test credits, exactly as the platform will run it.' : 'Practice mode: play credits, with results drawn in this browser using the same rules as the platform.'} Each raise either gets outbid, and your bid comes back in full, or wins the locker. The rivals thin out as the price climbs, so the higher you go the less likely you are to be outbid. A won locker's contents are a one-shot draw${target !== null ? ` averaging ${Math.round(target * 100)}% of the price you paid` : ''}. Being outbid costs nothing; the edge is only in lockers you win. The rivals, their bids and the auctioneer are theatre around those results.</p>`;
       } else if (tab === 'items') {
         const cats = (Object.entries(s.byCategory) as [Category, { items: number; value: number; lockers: number; replicas: number }][]).sort((a, b) => b[1].value - a[1].value);
         const maxV = Math.max(1, ...cats.map((c) => c[1].value));

@@ -46,7 +46,8 @@ export interface RaiseResult {
 
 export interface Currency { code: string; prefix: string; suffix: string; grouping: string; decimal: string; precision: number; denomination: number }
 
-export type MathMode = 'platform' | 'practice';
+/** platform: Rollerz; engine: the math engine's published module, in the browser (testing); practice: offline play credits. */
+export type MathMode = 'platform' | 'engine' | 'practice';
 
 export interface MathSession {
   mode: MathMode;

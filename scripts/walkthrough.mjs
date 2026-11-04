@@ -12,7 +12,7 @@ const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push('PAGEERROR: ' + e.message));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(m.type() + ': ' + m.text()); });
-await page.goto('http://127.0.0.1:4173/?seed=demo42&q=high');
+await page.goto(`http://127.0.0.1:${process.env.PORT ?? 4173}/?seed=demo42&q=high`);
 await page.waitForTimeout(1500);
 const tag = mobile ? 'm' : 'd';
 await page.screenshot({ path: `${OUT}/${tag}-0-intro.png` });

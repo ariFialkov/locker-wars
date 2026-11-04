@@ -17,13 +17,15 @@ import { LockerContents, prefetchLocker, releasePaths, warmupObjects } from '../
 import { Labels } from '../ui/labels';
 import { HUD } from '../ui/hud';
 import { makeRNG, type RNG } from '../core/rng';
-import { drawOutcome, payoutTarget, type Outcome } from '../core/economy';
-import { fmt, increment, snap } from '../core/money';
+import { fmt } from '../core/money';
+import { tierOf } from '../core/tiers';
 import { g } from '../core/config';
 import { tickTweens, tween, wait, clock, cancelAllTweens, easeOut, easeInOut, linear } from '../core/tween';
 import { loadStats, saveStats, resetStats, pushRound, BAILOUT_AMOUNT, type Stats } from '../core/stats';
-import { generateLocker, resolveLocker, LOCKER, type Locker, type Resolution, type Appraisal } from './lockerGen';
-import { Auction, type AuctionEvent } from './auction';
+import { generateLocker, resolveLocker, settleExact, LOCKER, type Locker, type Resolution, type Appraisal } from './lockerGen';
+import { RaiseAuction, type RaiseEvent } from './raise';
+import { createMathClient, PracticeClient, MathConfigError, BUY_NOW, type MathClient, type MathSession, type RaiseResult } from '../math';
+import { lockerTable, lockerMultiplier, STORAGE_PRESET } from '../math/practice';
 import { BOTS, BOT_BY_ID, type Bot } from './bots';
 import { sfx } from '../audio/sfx';
 import { voice } from '../audio/voice';
@@ -37,6 +39,13 @@ const INSPECT_SECONDS = 15;
 const INTRO_UNITS: Record<string, string> = { intro_1: 'B-214', intro_2: 'C-377' };
 const SLIDE_SECONDS = 2.8;
 
+/** The math server counts in minor units (cents); the game shows dollars. */
+const toUnits = (minor: number): number => minor / 100;
+const toMinor = (units: number): number => Math.round(units * 100);
+const fmtMinor = (minor: number): string => fmt(minor / 100);
+/** Presentation only: what a rival's locker "held" for the what-you-missed reveal. No money moves on it. */
+const DISPLAY_LOCKER = lockerTable(STORAGE_PRESET.payouts, STORAGE_PRESET.weights, STORAGE_PRESET.rtp);
+
 export class Game {
   readonly gs: GameScene;
   readonly door: RollupDoor;
@@ -49,18 +58,26 @@ export class Game {
   phase: Phase = 'idle';
   private locker: Locker | null = null;
   private contents: LockerContents | null = null;
-  private auction: Auction | null = null;
+  private auction: RaiseAuction | null = null;
+  /** Where bets go: the Rollerz platform, or practice credits (see src/math). */
+  private readonly math: MathClient | null;
+  private session: MathSession | null = null;
+  private readonly sessionReady: Promise<void>;
+  private mathError: string | null = null;
+  private betInFlight = false;
+  /** This round's winning (or buy-now) bet, once the server has settled it. */
+  private wonRaise: RaiseResult | null = null;
+  /** Balance (dollars) after the winning stake, before the win is credited: the count-up climbs from here. */
+  private balanceBeforeWin = 0;
+  private collectPending: Promise<number | null> | null = null;
   private bots: Bot[] = [];
-  private outcome: Outcome | null = null;
   private roundRng: RNG = makeRNG(0);
   private talkRng: RNG = makeRNG('talk');
   private inspectLeft = 0;
   private nameTags = new Map<string, HTMLElement>();
   private lastHudSync = 0;
-  private going: 0 | 1 | 2 = 0;
   private auctionClock = 0;
   private lullSaid = false;
-  private playerBidsThisRound = 0;
   private prefetched: { n: number; paths: string[] } | null = null;
   private crowdReady = false;
   private shadersWarm = false;
@@ -86,6 +103,12 @@ export class Game {
     voiceLines.preload('auctioneer');
     this.hud.setSound(this.stats.settings.sound);
     this.hud.setBalance(this.stats.balance, false);
+    let math: MathClient | null = null;
+    try { math = createMathClient(undefined, undefined, { practiceStart: this.stats.rounds > 0 ? toMinor(this.stats.balance) : undefined }); }
+    catch (e) { this.mathError = e instanceof MathConfigError ? e.message : String(e); }
+    this.math = math;
+    this.hud.setMathInfo({ mode: math?.mode ?? 'practice', rtp: null, error: this.mathError });
+    this.sessionReady = this.openSession();
     this.wireHud();
     this.rig.home(true);
     requestAnimationFrame(this.loop);
@@ -99,9 +122,30 @@ export class Game {
     this.rig.showcase();
     this.hud.showMenu(this.stats, BOTS);
     this.hud.setMenuLoading(0);
-    await this.crowd.loadCharacters((p) => this.hud.setMenuLoading(p * 0.75));
+    await Promise.all([this.crowd.loadCharacters((p) => this.hud.setMenuLoading(p * 0.75)), this.sessionReady]);
     this.crowdReady = true;
     await this.showMenu();
+  }
+
+  /** Open the betting session (platform or practice). The server's balance replaces ours. */
+  private async openSession(): Promise<void> {
+    if (!this.math) return;
+    try {
+      const s = await this.math.open();
+      this.session = s;
+      this.syncBalance(s.balance, false);
+      this.hud.setMathInfo({ mode: s.mode, rtp: s.rtp, error: null });
+    } catch (e) {
+      this.mathError = `Couldn't open a game session: ${e instanceof Error ? e.message : String(e)}`;
+      this.hud.setMathInfo({ mode: this.math.mode, rtp: null, error: this.mathError });
+    }
+  }
+
+  /** Mirror the server's balance (minor units) in the HUD and stats. */
+  private syncBalance(minor: number, animate = true): void {
+    this.stats.balance = toUnits(minor);
+    this.hud.setBalance(this.stats.balance, animate);
+    saveStats(this.stats);
   }
 
   /**
@@ -130,11 +174,21 @@ export class Game {
     H.onMenu = () => { void this.backToMenu(); };
     H.onFlashlight = () => { if (this.phase !== 'inspect') return; sfx.click(); this.gs.setFlashlight(!this.gs.flashlightOn); H.setFlashlight(this.gs.flashlightOn); };
     H.onReady = () => { if (this.phase === 'inspect') this.inspectLeft = 0; };
-    H.onBid = (amount) => this.playerBid(amount);
-    H.onPass = () => { if (this.auction && this.phase === 'auction') { sfx.click(); this.auction.playerFold(); H.toast('You passed. Watching the crowd finish it…'); this.syncAuctionHud(); } };
+    H.onBid = (amount) => { void this.playerRaise(amount); };
+    H.onBuyNow = () => { void this.playerBuyNow(); };
+    H.onPass = () => {
+      const a = this.auction;
+      if (!a || this.phase !== 'auction' || !a.canAct || a.walked) return;
+      sfx.click(); a.playerWalk();
+      H.toast(a.playerBids > 0 ? 'You walk away. Your bid came back to you.' : 'You passed. Watching the crowd finish it…');
+      this.syncAuctionHud();
+    };
     H.onFastForward = () => { clock.scale = clock.scale > 1 ? 1 : 4; H.toast(clock.scale > 1 ? 'Fast-forward ×4' : 'Normal speed', 900); };
     H.onNext = () => this.nextRound();
-    H.onBailout = () => { this.stats.balance += BAILOUT_AMOUNT; this.stats.bailouts++; this.hud.setBalance(this.stats.balance); saveStats(this.stats); this.nextRound(); };
+    H.onBailout = () => {
+      if (!(this.math instanceof PracticeClient)) return; // platform money can't be topped up from the game
+      this.stats.bailouts++; this.syncBalance(this.math.topUp(toMinor(BAILOUT_AMOUNT))); void this.nextRound();
+    };
     H.onToggleSound = () => {
       this.stats.settings.sound = !this.stats.settings.sound;
       sfx.unlock(); sfx.setEnabled(this.stats.settings.sound);
@@ -183,7 +237,7 @@ export class Game {
   }
 
   private async leaveMenu(): Promise<void> {
-    if (this.phase !== 'menu') return;
+    if (this.phase !== 'menu' || !this.session) return;
     this.phase = 'idle';
     this.hud.hideMenu();
     this.rig.home(); this.rig.lock();
@@ -202,6 +256,10 @@ export class Game {
     this.gs.interiorBulb.intensity = 0; this.gs.workLight.intensity = 0;
     this.rig.home(); this.rig.lock();
     this.hud.showPanel(null); this.hud.hideBanner(); this.hud.hideRevealCard();
+    this.auction = null;
+    // a won locker left mid count-up was already collected: show the server's balance
+    const pending = this.collectPending; this.collectPending = null;
+    if (pending) void pending.then((bal) => { if (bal !== null) this.syncBalance(bal, false); });
     await wait(0.3);
     await this.door.close();
     this.contents?.dispose(); this.contents = null;
@@ -224,9 +282,8 @@ export class Game {
     for (const b of this.bots) for (const id of b.pack) voiceLines.preload(id);
     this.gs.facility.setUnit(n);
     this.gs.unit.visible = true;
-    // The whole round's fate, decided before anyone sees anything. (See economy.ts.)
-    this.outcome = drawOutcome(this.roundRng.fork('outcome'));
-    this.playerBidsThisRound = 0;
+    // Nothing about this locker's value is decided here: every raise is settled by the math server.
+    this.wonRaise = null;
     // models load while the lock is being cut
     const contentsReady = LockerContents.create(this.gs.scene, this.locker);
     const prev = this.prefetched; this.prefetched = null;
@@ -295,71 +352,160 @@ export class Game {
   }
 
   private startAuction(): void {
-    if (!this.locker) return;
+    if (!this.locker || !this.session) return;
     this.phase = 'auction';
-    this.going = 0;
     this.auctionClock = 0;
     this.lullSaid = false;
-    this.auction = new Auction({ apparentValue: this.locker.apparentValue, bots: this.bots, rng: this.roundRng.fork('auction'), playerBalance: () => this.stats.balance });
-    this.auction.start();
+    this.auction = new RaiseAuction({ bots: this.bots, rng: this.roundRng.fork('auction'), money: fmtMinor });
+    this.auction.start(this.openingChip());
     // the look-around is over: back out to the default view, controls off, flashlight off
     this.rig.home(); this.rig.lock();
     this.gs.setFlashlight(false); this.hud.setFlashlight(false);
     this.hud.showPanel('auction');
-    this.hud.showBanner('Auction', 'Tap BID before the hammer falls', null, true);
+    this.hud.showBanner('Auction', 'Open the bidding, or pass', null, true);
     this.syncAuctionHud();
   }
 
-  private playerBid(amount: number): void {
-    if (!this.auction || this.phase !== 'auction') return;
-    if (this.auction.playerBid(amount)) {
-      sfx.bidBlip(true);
-      this.playerBidsThisRound++;
-      const line = this.playerBidsThisRound === 1 ? voiceLines.lines('auctioneer', 'player').find((l) => l.id === 'player_2') ?? null : voiceLines.pick(this.talkRng, 'auctioneer', this.talkRng.chance(0.5) ? 'player' : 'ack');
-      this.sayAuctioneer(line, { anim: 'point', hud: `${fmt(this.auction.price)} from the new face. Looking for ${fmt(this.auction.ask)}!` });
-      this.going = 0;
-      this.syncAuctionHud();
-    } else {
-      sfx.click();
+  /** Opening chips the player can afford right now, smallest first (minor units). */
+  private affordableChips(): number[] {
+    const bal = toMinor(this.stats.balance);
+    return (this.session?.chipLevels ?? []).filter((c) => c <= bal);
+  }
+
+  /** The opening chip to offer: the last one used if still affordable, else the closest affordable one. */
+  private openingChip(): number {
+    const s = this.session!;
+    const ok = this.affordableChips();
+    const want = this.stats.lastChip || s.defaultBet;
+    if (ok.includes(want)) return want;
+    return ok.length ? ok.reduce((b, c) => (Math.abs(c - want) < Math.abs(b - want) ? c : b), ok[0]) : s.chipLevels[0];
+  }
+
+  /** Buy-now price for an opening chip, if the server offers it (minor units). */
+  private buyNowPrice(chip: number): number | null {
+    const m = this.session?.buyNowMultiple;
+    if (!m || !this.math) return null;
+    const price = Math.round(chip * m);
+    const valid = this.math.validBets(BUY_NOW);
+    return valid.length === 0 || valid.includes(price) ? price : null;
+  }
+
+  /** The player opens (at `amount` dollars, one of the offered chips) or raises to the server's next bid. */
+  private async playerRaise(amount: number): Promise<void> {
+    const a = this.auction;
+    if (!a || this.phase !== 'auction' || this.betInFlight || !this.math || !a.canAct || a.walked) return;
+    if (a.phase === 'opening') {
+      const chip = toMinor(amount);
+      if (this.session?.chipLevels.includes(chip)) { a.setOpeningChip(chip); this.stats.lastChip = chip; }
     }
+    if (a.ask > toMinor(this.stats.balance)) { sfx.click(); this.hud.toast(`Not enough cash for ${fmtMinor(a.ask)}`); return; }
+    const bet = a.playerRaise();
+    if (!bet) return;
+    sfx.bidBlip(true);
+    const line = a.playerBids === 1 ? voiceLines.lines('auctioneer', 'player').find((l) => l.id === 'player_2') ?? null : voiceLines.pick(this.talkRng, 'auctioneer', this.talkRng.chance(0.5) ? 'player' : 'ack');
+    this.sayAuctioneer(line, { anim: 'point', hud: `${fmtMinor(bet.amount)} from the new face!` });
+    this.syncAuctionHud();
+    await this.placeBet(a, bet);
+  }
+
+  /** Take the locker outright at the buy-now price, before anyone has bid. */
+  private async playerBuyNow(): Promise<void> {
+    const a = this.auction;
+    if (!a || this.phase !== 'auction' || this.betInFlight || !this.math || a.phase !== 'opening' || a.walked) return;
+    const price = this.buyNowPrice(a.ask);
+    if (price === null) return;
+    if (price > toMinor(this.stats.balance)) { sfx.click(); this.hud.toast(`Not enough cash for ${fmtMinor(price)}`); return; }
+    const bet = a.playerBuyNow(price);
+    if (!bet) return;
+    sfx.bidBlip(true);
+    this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'ack'), { anim: 'point', hud: `Buy it now for ${fmtMinor(price)}? You got it!` });
+    this.syncAuctionHud();
+    await this.placeBet(a, bet);
+  }
+
+  /**
+   * Send one bet to the math server and stage its answer. An outbid's refund is collected at
+   * once; a won locker is collected straight away too (so the win is safe even if the tab
+   * closes), but the balance on screen climbs with the count-up.
+   */
+  private async placeBet(a: RaiseAuction, bet: { amount: number; betType: string }): Promise<void> {
+    this.betInFlight = true;
+    try {
+      const r = await this.math!.bet(bet.amount, bet.betType);
+      const current = this.auction === a;
+      this.syncBalance(r.balance);
+      if (r.outcome === 'OUTBID') {
+        const bal = await this.collectWithRetry(r.roundId);
+        if (bal !== null) this.syncBalance(bal);
+      } else if (current) {
+        this.wonRaise = r;
+        this.balanceBeforeWin = toUnits(r.balance);
+        this.collectPending = this.collectWithRetry(r.roundId);
+      } else {
+        // the round was abandoned while the bet was out: still take the win
+        const bal = await this.collectWithRetry(r.roundId);
+        if (bal !== null) this.syncBalance(bal);
+      }
+      if (this.auction === a) a.settle(r);
+    } catch (e) {
+      a.failed();
+      this.hud.toast(`That bid didn't go through: ${e instanceof Error ? e.message : String(e)}`, 3200);
+    } finally {
+      this.betInFlight = false;
+      this.syncAuctionHud();
+    }
+  }
+
+  /** Collect a settled round; a couple of retries before telling the player. Returns the new balance. */
+  private async collectWithRetry(roundId: string): Promise<number | null> {
+    for (let i = 0; i < 3; i++) {
+      try { return await this.math!.collect(roundId); }
+      catch (e) {
+        if (i === 2) { this.hud.toast(`Couldn't collect round ${roundId.slice(0, 8)}: ${e instanceof Error ? e.message : String(e)}`, 4000); return null; }
+        await new Promise((res) => setTimeout(res, 600 * (i + 1)));
+      }
+    }
+    return null;
   }
 
   private syncAuctionHud(): void {
-    const a = this.auction; if (!a) return;
-    const ask = a.ask;
-    const j1 = snap(ask + increment(ask) * 2), j2 = snap(ask + increment(ask) * 5);
-    this.hud.setAuction({ price: a.price, ask, high: a.high, canBid: a.playerCanBid, going: this.going, folded: a.playerFolded, jumps: [j1, j2], balance: this.stats.balance });
-    this.hud.setRivals(this.bots, typeof a.high === 'string' && a.high !== 'player' ? a.high : null, new Set(a.rivals.filter((r) => r.dropped).map((r) => r.bot.id)));
+    const a = this.auction; if (!a || !this.session) return;
+    const chips = this.affordableChips();
+    const sel = a.phase === 'opening' ? a.ask : a.opener || a.ask;
+    const i = chips.indexOf(sel);
+    const openers: [number | null, number, number | null] = [i > 0 ? toUnits(chips[i - 1]) : null, toUnits(sel), i >= 0 && i < chips.length - 1 ? toUnits(chips[i + 1]) : null];
+    const buy = a.phase === 'opening' ? this.buyNowPrice(a.ask) : null;
+    this.hud.setAuction({ phase: a.phase, price: toUnits(a.price), ask: toUnits(a.ask), high: a.high, going: a.goingCount, openers, buyNow: buy === null ? null : toUnits(buy), balance: this.stats.balance, walked: a.walked });
+    this.hud.setRivals(this.bots, typeof a.high === 'string' && a.high !== 'player' ? a.high : null, a.dropped);
     for (const [id, el] of this.nameTags) {
-      const rv = a.rivals.find((r) => r.bot.id === id);
       const tag = el.firstElementChild as HTMLElement;
       tag.classList.toggle('leader', a.high === id);
-      tag.classList.toggle('out', !!rv?.dropped);
+      tag.classList.toggle('out', a.dropped.has(id));
     }
   }
 
-  private handleAuctionEvent(e: AuctionEvent): void {
+  private handleAuctionEvent(e: RaiseEvent): void {
     switch (e.type) {
       case 'open':
         this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'open'), { anim: 'gesture', hud: e.text });
         break;
       case 'bid': {
-        this.going = 0;
         if (e.who !== 'player') {
           const bot = BOT_BY_ID[e.who];
           const f = this.crowd.rivals.get(e.who);
           sfx.bidBlip(false);
-          sfx.crowdReact(e.jump ? 0.9 : 0.4);
+          sfx.crowdReact(0.5);
           if (f) this.rig.glance(f.group.position.x);
-          if (e.jump) this.hud.toast(`${bot.short} jumps to ${fmt(e.amount)}!`, 1400);
+          const caption = this.auction?.phase === 'outbid' ? `${fmtMinor(e.amount)} from ${bot.short}. Looking for ${fmtMinor(this.auction.ask)}!` : `${fmtMinor(e.amount)} from ${bot.short}!`;
           // either the rival shouts their bid, or the auctioneer calls it
-          if (!voiceLines.isBusy('crowd') && this.talkRng.chance(0.6)) this.sayRival(bot, 'bid', { anim: 'bid', fallbackText: `${fmt(e.amount)}!` });
+          if (!voiceLines.isBusy('crowd') && this.talkRng.chance(0.6)) this.sayRival(bot, 'bid', { anim: 'bid', fallbackText: `${fmtMinor(e.amount)}!` });
           else {
             f?.bid();
-            this.labels.bubble((o) => f!.labelAnchor(o), `${fmt(e.amount)}!`, '', 1.2, 26, bot.id);
-            this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'ack'), { anim: 'gesture', interrupt: false, hud: `${fmt(e.amount)} from ${bot.short}. Looking for ${fmt(this.auction!.ask)}!` });
+            if (f) this.labels.bubble((o) => f.labelAnchor(o), `${fmtMinor(e.amount)}!`, '', 1.2, 26, bot.id);
+            this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'ack'), { anim: 'gesture', interrupt: false, hud: caption });
           }
-          this.hud.auctioneer(`${fmt(e.amount)} from ${bot.short}. Looking for ${fmt(this.auction!.ask)}!`);
+          this.hud.auctioneer(caption);
+          if (this.auction?.phase === 'outbid') this.hud.showBanner('Outbid', 'Raise, or walk away with your bid back', null, true);
         }
         break;
       }
@@ -368,7 +514,6 @@ export class Game {
         this.hud.auctioneer(e.text);
         break;
       case 'going':
-        this.going = e.count;
         this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', e.count === 1 ? 'once' : 'twice'), { anim: 'gesture', hud: e.text });
         sfx.tick();
         break;
@@ -382,34 +527,32 @@ export class Game {
     this.syncAuctionHud();
   }
 
+  /** `amount` is the hammer price in minor units. */
   private async onSold(who: string | null, amount: number, soldText: string): Promise<void> {
-    if (!this.locker || !this.auction || !this.outcome) return;
+    if (!this.locker || !this.auction) return;
+    const a = this.auction;
     this.phase = 'sold';
-    this.going = 0;
     sfx.gavel();
     sfx.murmurOff();
     this.hud.showPanel(null);
-    const playerWon = who === 'player';
+    const won = who === 'player' ? this.wonRaise : null;
+    const playerWon = !!won;
+    const paid = won ? won.bet : amount;
     const winnerName = playerWon ? 'You' : BOT_BY_ID[who ?? '']?.name ?? 'Nobody';
-    this.hud.showBanner('SOLD!', `${fmt(amount)} to ${winnerName}`, null, true);
+    this.hud.showBanner('SOLD!', `${fmtMinor(paid)} to ${winnerName}`, null, true);
     this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'sold'), { anim: 'point', hud: soldText });
 
-    // ---- settle the bet now, so hidden items load while the crowd reacts ----
-    let res: Resolution;
-    const couldHaveHadFor = snap(this.auction.topRivalLimit + increment(this.auction.topRivalLimit));
-    if (playerWon) {
-      this.stats.balance -= amount;
-      this.hud.setBalance(this.stats.balance);
-      const { target, debtUsed } = payoutTarget(this.outcome.multiplier, amount, this.stats.debt);
-      this.stats.debt -= debtUsed;
-      res = resolveLocker(this.locker, target, this.roundRng.fork('resolve'));
-      this.stats.debt += res.error;
-      saveStats(this.stats);
+    // ---- the contents: the server's draw for the player's locker, theatre for a rival's ----
+    let contents: number, multiplier: number;
+    if (won) {
+      contents = won.win;
+      multiplier = won.locker?.multiplier ?? (paid > 0 ? contents / paid : 0);
     } else {
-      // Nothing at stake for the player: the reveal is pure theatre, drawn from the same distribution.
-      const m = drawOutcome(this.roundRng.fork('display')).multiplier;
-      res = resolveLocker(this.locker, m * amount, this.roundRng.fork('resolve'));
+      // nothing at stake for the player: drawn from the same locker shape, no money moves
+      multiplier = lockerMultiplier(DISPLAY_LOCKER, this.roundRng.fork('display').next()).multiplier;
+      contents = Math.round(paid * multiplier);
     }
+    const res = settleExact(resolveLocker(this.locker, toUnits(contents), this.roundRng.fork('resolve')), toUnits(contents));
     this.contents?.prefetchReveals(res.appraisals);
 
     if (playerWon) {
@@ -422,12 +565,12 @@ export class Game {
       setTimeout(() => this.sayRival(w, 'win'), 1300);
     }
     await wait(2.6);
-    await this.countUp(res, amount, !playerWon);
-    this.finishRound(who, amount, res, couldHaveHadFor);
+    await this.countUp(res, toUnits(paid), !playerWon, multiplier);
+    this.finishRound(playerWon ? 'player' : who, toUnits(paid), res, multiplier, a.playerBids);
   }
 
   /** Walk through the locker appraising everything. 15–60 s for the player's own locker, ~8 s for a rival's. */
-  private async countUp(res: Resolution, paid: number, quick: boolean): Promise<void> {
+  private async countUp(res: Resolution, paid: number, quick: boolean, multiplier: number): Promise<void> {
     this.phase = 'count';
     clock.scale = 1;
     this.prefetchNext();
@@ -477,7 +620,7 @@ export class Game {
         this.hud.showItemValue(v, bad);
         const r = before + v;
         this.hud.setRunning(r, quick ? 0 : paid);
-        if (!quick) this.hud.setBalance(this.stats.balance + r, false);
+        if (!quick) this.hud.setBalance(this.balanceBeforeWin + r, false);
         const step = Math.floor(k * 10);
         if (step !== lastTick) { lastTick = step; sfx.cashTick(step + i); }
       }, easeOut);
@@ -492,11 +635,16 @@ export class Game {
       await wait(Math.max(0.15, dur - pre - tickDur - 0.35));
     }
     this.hud.setBannerProgress(1);
-    if (!quick) { this.stats.balance += total; this.hud.setBalance(this.stats.balance, false); }
+    if (!quick) {
+      // the win was collected when the server settled it; land on the server's balance
+      const bal = await (this.collectPending ?? Promise.resolve(null));
+      this.collectPending = null;
+      if (bal !== null) this.syncBalance(bal, false); else this.hud.setBalance(this.balanceBeforeWin + total, false);
+    }
     this.gs.workLight.intensity = 0;
     // the auctioneer calls it: a jackpot or a bust gets its own line
     const ratio = total / Math.max(0.01, paid);
-    const tier = !quick ? this.outcome?.tier : null;
+    const tier = !quick ? tierOf(multiplier) : null;
     if (tier === 'jackpot' || tier === 'huge' || (quick && ratio >= 2.2)) this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'jackpot'), { anim: 'point' });
     else if (tier === 'bust' || (quick && ratio < 0.3)) this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'bust'), { anim: 'gesture' });
     // pull back for the total
@@ -537,8 +685,10 @@ export class Game {
     this.prefetched = { n, paths: prefetchLocker(generateLocker(this.stats.sessionSeed, n)) };
   }
 
-  private finishRound(who: string | null, amount: number, res: Resolution, couldHaveHadFor: number): void {
-    if (!this.locker || !this.outcome || !this.auction) return;
+  /** `amount` is the hammer price in dollars; `playerBids` how many raises the player made. */
+  private finishRound(who: string | null, amount: number, res: Resolution, multiplier: number, playerBids: number): void {
+    if (!this.locker) return;
+    const tier = tierOf(multiplier);
     this.phase = 'result';
     const s = this.stats;
     const playerWon = who === 'player';
@@ -546,7 +696,7 @@ export class Game {
     const best = res.appraisals.reduce<Appraisal | null>((b, a) => (!b || a.value > b.value ? a : b), null);
     s.rounds++;
     let quip: { who: string; text: string } | null = null;
-    const record = { n: this.locker.number, theme: this.locker.theme.name, paid: amount, value, items: res.appraisals.length, couldHaveHadFor, at: Date.now(), topItem: best ? { name: best.def.name, value: best.value } : null } as const;
+    const record = { n: this.locker.number, theme: this.locker.theme.name, paid: amount, value, items: res.appraisals.length, at: Date.now(), topItem: best ? { name: best.def.name, value: best.value } : null } as const;
     if (playerWon) {
       const profit = value - amount;
       s.won++; s.totalSpent += amount; s.totalEarned += value;
@@ -554,7 +704,7 @@ export class Game {
       s.bestLockerValue = Math.max(s.bestLockerValue, value);
       s.bestMultiplier = Math.max(s.bestMultiplier, value / amount);
       s.streak = profit >= 0 ? s.streak + 1 : 0; s.bestStreak = Math.max(s.bestStreak, s.streak);
-      if (this.outcome.tier === 'jackpot') s.jackpots++;
+      if (tier === 'jackpot') s.jackpots++;
       for (const a of res.appraisals) {
         s.itemsAppraised++;
         if (a.revealed) s.hiddenValue += a.value; else s.visibleValue += a.value;
@@ -569,10 +719,10 @@ export class Game {
       const rival = this.roundRng.pick(this.bots);
       const reactLine = this.rivalLine(rival, 'react');
       quip = { who: rival.name, text: reactLine?.text ?? this.roundRng.pick(rival.loseLines) };
-      pushRound(s, { ...record, result: 'won', winner: 'player', profit, multiplier: value / amount, tier: this.outcome.tier });
-      if (profit >= 0) sfx.fanfare(this.outcome.tier === 'huge' || this.outcome.tier === 'jackpot'); else sfx.sad();
+      pushRound(s, { ...record, result: 'won', winner: 'player', profit, multiplier, tier });
+      if (profit >= 0) sfx.fanfare(tier === 'huge' || tier === 'jackpot'); else sfx.sad();
     } else {
-      const bid = this.auction.playerBids > 0;
+      const bid = playerBids > 0;
       if (bid) s.lost++; else s.passed++;
       s.streak = 0;
       if (who) { const r = (s.rivals[who] ??= { beatYou: 0, youBeat: 0, lockers: 0, spent: 0 }); r.lockers++; r.spent += amount; if (bid) r.beatYou++; }
@@ -581,11 +731,11 @@ export class Game {
       pushRound(s, { ...record, result: bid ? 'lost' : 'passed', winner: who ?? 'nobody', profit: 0, multiplier: value / Math.max(1, amount), tier: null });
     }
     saveStats(s);
-    const minNeeded = 3;
-    const broke = s.balance < minNeeded;
+    const minChip = this.session ? Math.min(...this.session.chipLevels) : 0;
+    const broke = toMinor(s.balance) < minChip;
     this.hud.showPanel(null);
     this.hud.showBanner(playerWon ? (value >= amount ? 'Profit' : 'Loss') : 'Next time', '');
-    this.hud.showResult({ kind: playerWon ? 'won' : this.auction.playerBids > 0 ? 'lost' : 'passed', winnerName: who ? BOT_BY_ID[who]?.name ?? 'Nobody' : 'Nobody', paid: amount, value, multiplier: value / Math.max(1, amount), tier: playerWon ? this.outcome.tier : null, best, quip, couldHaveHadFor, broke });
+    this.hud.showResult({ kind: playerWon ? 'won' : playerBids > 0 ? 'lost' : 'passed', winnerName: who ? BOT_BY_ID[who]?.name ?? 'Nobody' : 'Nobody', paid: amount, value, multiplier, tier: playerWon ? tier : null, best, quip, broke, canBailout: this.math instanceof PracticeClient });
   }
 
   private async nextRound(): Promise<void> {
@@ -698,7 +848,7 @@ export class Game {
       this.auction.update(dt);
       this.auctionClock += dt;
       // a long silence before the first bid gets the auctioneer pleading
-      if (!this.lullSaid && this.auction.price === 0 && this.auctionClock > 5.5) {
+      if (!this.lullSaid && this.auction.phase === 'opening' && this.auctionClock > 5.5) {
         this.lullSaid = true;
         this.sayAuctioneer(voiceLines.pick(this.talkRng, 'auctioneer', 'drop'), { anim: 'gesture', interrupt: false });
       }

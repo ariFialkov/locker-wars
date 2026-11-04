@@ -1,6 +1,6 @@
 /** Player progress, analytics and persistence (localStorage). */
 import type { Category } from '../game/items/types';
-import type { OutcomeTier } from './economy';
+import type { OutcomeTier } from './tiers';
 
 import { START_BALANCE, BAILOUT_AMOUNT } from './config';
 export { START_BALANCE, BAILOUT_AMOUNT };
@@ -18,7 +18,6 @@ export interface RoundRecord {
   tier: OutcomeTier | null;
   topItem: { name: string; value: number } | null;
   items: number;
-  couldHaveHadFor: number;
   at: number;
 }
 
@@ -30,8 +29,12 @@ export interface Stats {
   version: number;
   sessionSeed: string;
   round: number;
+  /** Mirror of the math server's balance (dollars); the server's number always wins. */
   balance: number;
+  /** Retired (the old in-game RTP engine's carry); kept so old saves load. */
   debt: number;
+  /** Last opening chip the player used, minor units (0 = none yet). */
+  lastChip: number;
   rounds: number;
   won: number;
   lost: number;
@@ -65,6 +68,7 @@ export function freshStats(seed?: string): Stats {
     round: 0,
     balance: START_BALANCE,
     debt: 0,
+    lastChip: 0,
     rounds: 0, won: 0, lost: 0, passed: 0,
     totalSpent: 0, totalEarned: 0,
     bestProfit: 0, worstLoss: 0, bestLockerValue: 0, bestMultiplier: 0,

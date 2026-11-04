@@ -238,6 +238,7 @@ const CONDITIONS: (Condition & { p: number })[] = [
 ];
 const REPLICA: Condition = { label: 'Replica', mult: 0.05, tone: 'bad' };
 const SCRAP: Condition = { label: 'Scrap', mult: 0.05, tone: 'bad' };
+const JUNK: Condition = { label: 'Junk', mult: 0, tone: 'bad' };
 
 export interface Appraisal {
   item: PlacedItem;
@@ -332,6 +333,32 @@ export function resolveLocker(locker: Locker, target: number, rng: RNG): Resolut
   appraisals.sort((a, b) => a.item.row - b.item.row || a.item.x - b.item.x || a.item.y - b.item.y);
   const total = appraisals.reduce((s, a) => s + a.value, 0);
   return { appraisals, total, error: total - target };
+}
+
+/**
+ * Make the appraisals add up to `target` to the cent: the locker's contents are what the math
+ * server paid, so the count-up must land on exactly that number. The residual is absorbed by
+ * the most valuable concealed item first (then visible ones); items cut to $0 read as Junk.
+ */
+export function settleExact(res: Resolution, target: number): Resolution {
+  const cents = (v: number) => Math.round(v * 100);
+  const targetC = Math.max(0, cents(target));
+  for (const a of res.appraisals) a.value = cents(a.value) / 100;
+  let residual = targetC - res.appraisals.reduce((s, a) => s + cents(a.value), 0);
+  const order = [...res.appraisals].sort((x, y) => Number(y.revealed) - Number(x.revealed) || y.value - x.value);
+  if (residual > 0 && order.length) {
+    order[0].value = (cents(order[0].value) + residual) / 100;
+    residual = 0;
+  }
+  for (const a of order) {
+    if (residual >= 0) break;
+    const take = Math.min(cents(a.value), -residual);
+    a.value = (cents(a.value) - take) / 100;
+    residual += take;
+    if (a.value === 0) { a.condition = JUNK; a.baseValue = 0; }
+  }
+  const total = res.appraisals.reduce((s, a) => s + cents(a.value), 0) / 100;
+  return { appraisals: res.appraisals, total, error: total - targetC / 100 };
 }
 
 function chooseHiddenDef(rng: RNG, slot: PlacedItem, amount: number, usedIds: Set<string>, isLast: boolean): ItemDef {

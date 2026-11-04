@@ -33,32 +33,40 @@ Useful URL flags: `?seed=abc` for a reproducible sequence of lockers, `?q=low|hi
 ## How a round plays
 
 1. **Arrival**: the auctioneer calls the unit, bolt cutters snap the padlock (sparks, clank), the roll-up door rattles open and dust rolls out from under it, settling before you look inside. Every round is a different unit: between rounds the camera moves down the row to the next door (B-214, B-215, ...) and the crowd walks along with it.
-2. **Inspection (15 s)**: the camera steps up to the door and turns on the spot. Hold W A S D / the arrow keys, or drag, to look around; let go and the view springs back to centre. Pinch, scroll or Q/E lean in. The flashlight works only here: when the auction starts the view steps back out, the controls lock and the flashlight goes off; toggle the hand-held flashlight (a spotlight that follows the camera into the dark unit). Some items sit in plain view, others are under tarps, blankets, in boxes, crates, suitcases, trash bags or a safe.
-3. **Auction**: rivals yell bids with speech bubbles and voices, the auctioneer chants asks, prices climb in real auction increments. Bid, jump-bid, or pass. When nobody tops the high bid it goes "once, twice, sold".
+2. **Inspection (15 s)**: the camera steps up to the door and turns on the spot. Hold W A S D / the arrow keys, or drag, to look around; let go and the view springs back to centre. Pinch, scroll or Q/E lean in. The hand-held flashlight (a spotlight that follows the camera into the dark unit) works only here: when the auction starts the view steps back out, the controls lock and the flashlight goes off. Some items sit in plain view, others are under tarps, blankets, in boxes, crates, suitcases, trash bags or a safe.
+3. **Auction**: pick an opening bid from the platform's chip levels (or **buy it now** at 10× the opener). Every raise is its own bet with the math server: if a rival tops you, your bid comes back in full and you can raise to the next amount the server names, or walk away. If the rivals fold, the locker is yours at your last bid. Rivals yell, the auctioneer chants, and it goes "once, twice, sold".
 4. **Count-up (15–60 s)**: the camera walks the locker item by item, swinging around anything that would hide a small item behind a big one. Covers are pulled off, each item gets a condition stamp (Mint, Worn, Broken, Replica...) and its value rolls into the running total. If a rival won, you get a quick tour of what you missed or dodged.
 5. **Result**: profit or loss, best find, rival quip, and on to the next unit. Progress and analytics persist in `localStorage`.
 
 ## The economics (read this)
 
-The game is a simulated-multiplayer bet, not a skill game, and the result of every locker you win is fixed before the auction begins.
+Every money decision is made by the math server, not by the game. The game sends bets and shows the answers.
 
-- **RTP = 96%.** Each won locker is an independent bet: the stake is the hammer price *P*, the payout is the appraised contents *V*. A multiplier *M* is drawn per round from a fixed distribution whose mean is analytically calibrated to exactly `TARGET_RTP` in `src/core/economy.ts`. The tests sample it and check the mean and the hit rate.
-- **Shaped so wins are worth it.** About half of won lockers pay more than their price, and most of those pay ×1.1 or better, with a fat big-win band and rarer huge and jackpot bands. At a fixed 96% mean that has to be paid for on the losing side, so most losses are busts: near-worthless lockers. Same expected return, meaningful wins, harsh busts.
+- **A raise is a bet.** Raise *k* (bet type `BID_k`) stakes the bid. The server answers **OUTBID**, and the stake comes back in full with the next raise named (`next.bid`), or **WON**, and the locker opens. The rivals thin out as the price climbs, so the higher you go the less likely you are to be outbid; the last raise always wins.
+- **The locker is a one-shot draw.** A won locker's contents are `multiplier × your bid`, the multiplier drawn by the server from a fixed distribution (on the documented storage preset: 18% empty lockers, listed multiples from 0.5× to 7×, mean 0.95× the price). `BUY_NOW` opens the same locker shape at 10× the opener. Being outbid is free; the edge is only in lockers you win.
+- **What the game does with it.** `resolveLocker` dresses the server's number as items (visible ones keep their identity and vary by condition, concealed ones pick an identity that fits), and `settleExact` makes them add up to the server's contents to the cent. The rivals, their counter-bids (always between your bid and the next raise) and the auctioneer are presentation built around the server's results; they cannot change one. When a rival wins, the "what you missed" reveal is presentation only, and no money moves.
+- **Money.** All amounts on the wire are integers in minor units (cents). The bet response debits the stake; `collect` credits the win. The game collects an outbid's refund at once, and a won locker as soon as it is settled; the balance on screen is always the server's.
 
-| Band | Share | Multiplier (after calibration) |
+### Platform vs practice
+
+`src/math` has one interface and two implementations:
+
+- **Rollerz platform** (`src/math/rollerz.ts`): bets go through the official Rollerz SDK (`@rollerz/sdk`, pinned, MIT) and its generic provider: `RollerzSDK.init(gameId)`, `gp.configureBetTypes([BID_1 … BID_6, BUY_NOW])`, `gp.openGame({ serverUrl, internalClientCode })`, `gp.placeBet(amount, { betType })`, `gp.collect(roundId)`. The SDK routes them through the Rollerz bridge to the RGS backend, which calls the auction math server. Results are read from the bet response's top level or from its `math` field.
+- **Practice** (`src/math/practice.ts`): play credits, settled in the browser, with the same wire format and the documented storage-preset numbers. It exists so the game is playable and testable without a platform session, and it is labelled "Practice credits" in the menu. Bailouts exist only here.
+
+The platform is used when it is configured, at build time or in the page URL:
+
+| Setting | Build variable | URL parameter |
 |---|---|---|
-| Bust | 41% | ×0.02 to ×0.29 |
-| Loss | 10% | ×0.29 to ×0.78 |
-| Win | 27% | ×1.07 to ×1.36 |
-| Big win | 17% | ×1.46 to ×2.14 |
-| Huge win | 4% | ×2.1 to ×4.4 |
-| Jackpot | 1% | ×4.4 to ×11.7 |
-- **Retargeting, not rigged bidding.** After you win, `resolveLocker` sets *V = M × P*: visible items keep their identity and only their *condition* varies, while concealed slots pick an identity whose value range fits the share they must carry (a tarp might hide a jet ski or a broken washer, a safe might hold coins or bonds). That is why the design is robust against selection bias: nothing you can observe from the door (item mix, cover sizes, rival behaviour, price) correlates with *M*, so folding on "expensive-looking" lockers or jump-bidding cannot move your expected return. Driving the price with bots instead (the "bots keep raising until the deterministic minimum" approach) would leak information, because the required price relative to the visible value would then reveal the outcome.
-- **Carry-over correction.** When a target cannot be hit exactly (for example, the visible items already exceed a tiny bust target even at scrap value), the difference is carried as `debt` and absorbed smoothly by the next won lockers, capped at 25% of a stake so no single round feels engineered. The round-loop test drives thousands of lockers with erratic stake sizes and confirms the realised RTP converges on 96%.
-- **Rivals** value the unit from its *apparent* value (visible items plus rough guesses per cover type) times a random factor, so their ceiling looks believable and gives you the feel of finding the price band between "outbid the crowd" and "less than it's worth". They never see *M*.
-- **Deterministic.** Every locker, outcome, rival roster and auction is seeded from the session seed and round number, so a round can be replayed exactly.
+| Game id | `VITE_ROLLERZ_GAME_ID` | `game` |
+| Internal client code | `VITE_ROLLERZ_CLIENT_CODE` | `client` |
+| Math server URL | `VITE_ROLLERZ_SERVER_URL` | `server` (read by the SDK) |
+| Server path (optional) | `VITE_ROLLERZ_PATH` | |
+| Raise stages (default 6) | `VITE_ROLLERZ_STAGES` | |
 
-The Stats panel shows theoretical vs realised RTP, the outcome history, value by item category, top finds, head-to-head records against each rival, bankroll curve, streaks, hidden vs visible value found, replicas spotted, and more.
+A half-configured platform shows an error instead of falling back to practice, and a platform build refuses `?math=practice`, so real play can never end up rolling in the browser.
+
+The Stats panel shows the locker return and your realised return, the outcome history, value by item category, top finds, head-to-head records against each rival, bankroll curve, streaks, hidden vs visible value found, replicas spotted, and more.
 
 ## Tech
 
@@ -76,21 +84,22 @@ The Stats panel shows theoretical vs realised RTP, the outcome history, value by
 ```
 assets/pack     asset pack: characters, voice lines, item and container models, cards (see assets/pack/SOURCE.md)
 src/pack        pack manifest access, model loader, recorded voice-line player
-src/core        rng, money/bid ladder, RTP economy, stats persistence, tween system
-src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, auction FSM, round orchestrator
+src/math        math client: Rollerz SDK (platform) and practice backends, response parsing
+src/core        rng, money formatting, outcome tiers, stats persistence, tween system
+src/game        locker generation & resolution, item bank (90+ recipes), covers, rivals, raise-by-raise auction presentation, round orchestrator
 src/render      scene & environment, roll-up door + lock cutting, animated crowd, camera rig, particles, locker contents
 src/audio       synthesised SFX, voices
 src/ui          HUD panels, modals, stats dashboard, 3D-anchored labels/speech bubbles
-test            vitest suites for the economy, generator and auction
+test            vitest suites for the math clients, response parsing, the raise auction and the locker generator
 scripts         icon generator, item catalog generator, headless walkthrough
 tools           dev-only pages: item catalog data, reveal-card renderer
 ```
 
 ## Tuning knobs
 
-- `TARGET_RTP` and the outcome bands: `src/core/economy.ts`
-- Bid increments: `src/core/money.ts`
+- Return, outbid odds, bid ladder and locker multipliers: set by the math server (practice mirrors them in `STORAGE_PRESET`, `src/math/practice.ts`)
+- Pacing of the auction theatre (going once/twice, counter-bid delay): `src/game/raise.ts`
 - Locker themes, item counts, hidden share: `THEMES` in `src/game/lockerGen.ts`
 - Item bank (values, sizes, rarity, shapes): `src/game/items/bank.ts`
 - Rival personalities and lines: `src/game/bots.ts`
-- Starting bankroll and bailout: `src/core/stats.ts`
+- Practice credits and bailout: `PRACTICE_START` in `src/math/practice.ts`, `BAILOUT_AMOUNT` in `src/core/config.ts`

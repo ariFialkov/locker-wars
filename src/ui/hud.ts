@@ -1,6 +1,7 @@
 /** All 2D UI: main menu, top bar, banners, phase panels, result card, stats. */
 import { fmt, fmtSigned } from '../core/money';
-import { TARGET_RTP, TIER_LABEL, hitRate, type OutcomeTier } from '../core/economy';
+import { TIER_LABEL, type OutcomeTier } from '../core/tiers';
+import type { RaisePhase } from '../game/raise';
 import { realizedRTP, type Stats, START_BALANCE, BAILOUT_AMOUNT } from '../core/stats';
 import { CATEGORY_ICON, CATEGORY_LABEL, type Category } from '../game/items/types';
 import { BOT_BY_ID, type Bot } from '../game/bots';
@@ -18,9 +19,26 @@ export interface ResultData {
   tier: OutcomeTier | null;
   best: Appraisal | null;
   quip: { who: string; text: string } | null;
-  couldHaveHadFor: number;
   broke: boolean;
+  /** Practice credits can be topped up; platform money cannot. */
+  canBailout: boolean;
 }
+
+/** What the bidding panel shows. Amounts in dollars. */
+export interface AuctionView {
+  phase: RaisePhase;
+  price: number;
+  ask: number;
+  high: string | null;
+  going: 0 | 1 | 2;
+  /** Opening choices while nobody has bid: [smaller, selected, larger] (null where none). */
+  openers: [number | null, number, number | null];
+  buyNow: number | null;
+  balance: number;
+  walked: boolean;
+}
+
+export interface MathInfo { mode: 'platform' | 'practice'; rtp: number | null; error: string | null }
 
 const h = (html: string): HTMLElement => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild as HTMLElement; };
 const cssColor = (c: number) => '#' + c.toString(16).padStart(6, '0');
@@ -28,6 +46,7 @@ const cssColor = (c: number) => '#' + c.toString(16).padStart(6, '0');
 export class HUD {
   root = document.getElementById('ui')!;
   onBid: (amount: number) => void = () => {};
+  onBuyNow: () => void = () => {};
   onPass: () => void = () => {};
   onFlashlight: () => void = () => {};
   onReady: () => void = () => {};
@@ -46,7 +65,8 @@ export class HUD {
   private banner!: HTMLElement; private bannerTitle!: HTMLElement; private bannerSub!: HTMLElement; private bannerBar!: HTMLElement; private bannerBarI!: HTMLElement;
   private auctLine!: HTMLElement;
   private panels: Record<string, HTMLElement> = {};
-  private priceEl!: HTMLElement; private whoEl!: HTMLElement; private bidMain!: HTMLButtonElement; private bidJ1!: HTMLButtonElement; private bidJ2!: HTMLButtonElement; private passBtn!: HTMLButtonElement; private rivalsStrip!: HTMLElement;
+  private priceEl!: HTMLElement; private whoEl!: HTMLElement; private bidMain!: HTMLButtonElement; private bidJ1!: HTMLButtonElement; private bidJ2!: HTMLButtonElement; private passBtn!: HTMLButtonElement; private buyBtn!: HTMLButtonElement; private rivalsStrip!: HTMLElement;
+  private mathInfo: MathInfo = { mode: 'practice', rtp: null, error: null };
   private cardIcon!: HTMLElement; private cardName!: HTMLElement; private cardCond!: HTMLElement; private cardVal!: HTMLElement; private runningEl!: HTMLElement; private paidEl!: HTMLElement; private dots!: HTMLElement;
   private flashBtns: HTMLButtonElement[] = []; private soundBtns: HTMLButtonElement[] = []; private voiceBtns: HTMLButtonElement[] = []; private installBtns: HTMLButtonElement[] = [];
   private resultModal!: HTMLElement; private statsModal!: HTMLElement; private menu!: HTMLElement; private toasts!: HTMLElement;
@@ -97,15 +117,16 @@ export class HUD {
       <div class="rail"><span>Live auction</span><em class="rail-lot"></em></div>
       <div class="bid-state"><div class="price">$0</div><div class="who">Opening</div></div>
       <div class="bid-buttons"><button class="btn primary main">Bid</button><button class="btn jump1">+</button><button class="btn jump2">+</button></div>
-      <div class="row"><button class="btn danger pass">Pass on this locker</button></div>
+      <div class="row"><button class="btn gold buy" hidden>Buy it now</button><button class="btn danger pass">Pass on this locker</button></div>
       <div class="rivals-strip"></div>
     </div>`);
     this.root.appendChild(pa); this.panels.auction = pa;
     this.priceEl = pa.querySelector('.price')!; this.whoEl = pa.querySelector('.who')!;
-    this.bidMain = pa.querySelector('.main')!; this.bidJ1 = pa.querySelector('.jump1')!; this.bidJ2 = pa.querySelector('.jump2')!; this.passBtn = pa.querySelector('.pass')!;
+    this.bidMain = pa.querySelector('.main')!; this.bidJ1 = pa.querySelector('.jump1')!; this.bidJ2 = pa.querySelector('.jump2')!; this.passBtn = pa.querySelector('.pass')!; this.buyBtn = pa.querySelector('.buy')!;
     this.rivalsStrip = pa.querySelector('.rivals-strip')!;
     for (const b of [this.bidMain, this.bidJ1, this.bidJ2]) b.addEventListener('click', () => this.onBid(Number(b.dataset.amount)));
     this.passBtn.addEventListener('click', () => this.onPass());
+    this.buyBtn.addEventListener('click', () => this.onBuyNow());
     for (const b of this.flashBtns) b.addEventListener('click', () => this.onFlashlight());
 
     // count-up panel
@@ -185,25 +206,44 @@ export class HUD {
     (this.panels.inspect.querySelector('.rivals-strip') as HTMLElement).innerHTML = `<span class="t-label">Against</span>` + html;
   }
 
-  setAuction(state: { price: number; ask: number; high: string | null; canBid: boolean; going: 0 | 1 | 2; folded: boolean; jumps: [number, number]; balance: number }): void {
-    const { price, ask, high, canBid, going, folded, jumps, balance } = state;
+  setAuction(v: AuctionView): void {
     const prev = this.priceEl.textContent;
-    this.priceEl.textContent = price > 0 ? fmt(price) : fmt(ask);
+    const opening = v.phase === 'opening' || (v.phase === 'pending' && v.high === 'player' && v.price === 0);
+    this.priceEl.textContent = v.price > 0 ? fmt(v.price) : fmt(v.ask);
     if (prev !== this.priceEl.textContent) { this.priceEl.classList.remove('bump'); void this.priceEl.offsetWidth; this.priceEl.classList.add('bump'); }
-    let who = 'Opening bid';
+    let who = v.phase === 'opening' ? 'Open the bidding' : 'Opening bid';
     let cls = 'who';
-    if (high === 'player') { who = 'You have it'; cls += ' you'; }
-    else if (high) { who = `${BOT_BY_ID[high]?.short ?? high} has it`; }
-    if (going === 1) { who = 'Going once'; cls += ' going'; }
-    if (going === 2) { who = 'Going twice'; cls += ' going'; }
+    if (v.high === 'player') { who = v.phase === 'pending' ? 'Your bid…' : 'You have it'; cls += ' you'; }
+    else if (v.high) who = `${BOT_BY_ID[v.high]?.short ?? v.high} has it`;
+    if (v.going === 1) { who = 'Going once'; cls += ' going'; }
+    if (v.going === 2) { who = 'Going twice'; cls += ' going'; }
     this.whoEl.textContent = who; this.whoEl.className = cls;
-    this.bidMain.innerHTML = `Bid ${fmt(ask)}`; this.bidMain.dataset.amount = String(ask);
-    this.bidJ1.innerHTML = `<span class="stack">${fmt(jumps[0])}<small>jump</small></span>`; this.bidJ1.dataset.amount = String(jumps[0]);
-    this.bidJ2.innerHTML = `<span class="stack">${fmt(jumps[1])}<small>big jump</small></span>`; this.bidJ2.dataset.amount = String(jumps[1]);
-    this.bidMain.disabled = !canBid; this.bidJ1.disabled = !canBid || jumps[0] > balance; this.bidJ2.disabled = !canBid || jumps[1] > balance;
-    this.passBtn.disabled = folded; this.passBtn.textContent = folded ? 'You passed' : 'Pass on this locker';
-    if (!canBid && !folded && high !== 'player' && ask > balance) this.bidMain.innerHTML = `Can't afford ${fmt(ask)}`;
+    const canAct = (v.phase === 'opening' || v.phase === 'outbid') && !v.walked;
+    const showChoices = v.phase === 'opening' && !v.walked;
+    const [lo, sel, hi] = v.openers;
+    const setBtn = (b: HTMLButtonElement, amount: number | null, html: string, enabled: boolean) => {
+      b.hidden = amount === null; if (amount === null) return;
+      b.innerHTML = html; b.dataset.amount = String(amount); b.disabled = !enabled || amount > v.balance;
+    };
+    if (showChoices) {
+      setBtn(this.bidMain, sel, `Open ${fmt(sel)}`, canAct);
+      setBtn(this.bidJ1, lo, `<span class="stack">${fmt(lo ?? 0)}<small>smaller</small></span>`, canAct);
+      setBtn(this.bidJ2, hi, `<span class="stack">${fmt(hi ?? 0)}<small>bigger</small></span>`, canAct);
+    } else {
+      this.bidJ1.hidden = true; this.bidJ2.hidden = true;
+      const label = v.phase === 'pending' ? 'Bidding…' : v.phase === 'outbid' ? `Raise ${fmt(v.ask)}` : v.high === 'player' ? 'You have it' : 'Sold';
+      setBtn(this.bidMain, v.ask, label, canAct);
+      if (canAct && v.ask > v.balance) this.bidMain.innerHTML = `Can't afford ${fmt(v.ask)}`;
+    }
+    this.bidMain.parentElement!.classList.toggle('solo', !showChoices);
+    this.buyBtn.hidden = !(showChoices && v.buyNow !== null);
+    if (v.buyNow !== null) { this.buyBtn.innerHTML = `<span class="stack">Buy it now<small>${fmt(v.buyNow)}</small></span>`; this.buyBtn.disabled = !canAct || v.buyNow > v.balance; }
+    this.passBtn.disabled = !canAct;
+    this.passBtn.textContent = v.walked ? 'You passed' : opening ? 'Pass on this locker' : 'Walk away';
   }
+
+  /** Which backend the bets go to, for the menu and stats. */
+  setMathInfo(info: MathInfo): void { this.mathInfo = info; }
 
   /* ---------- count-up ---------- */
   startCount(total: number, paid: number): void {
@@ -270,9 +310,9 @@ export class HUD {
       lines = `<div class="ln"><span>Sold for</span><b>${fmt(r.paid)}</b></div>
         <div class="ln"><span>Appraised contents</span><b class="gold">${fmt(r.value)}</b></div>
         <div class="ln total"><span>${better ? 'You missed' : 'You dodged'}</span><b class="${better ? 'bad' : 'good'}">${fmt(Math.abs(missed))}</b></div>`;
-      note = `<p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`} You could have taken it for <b>${fmt(r.couldHaveHadFor)}</b>.</p>`;
+      note = `<p>${better ? `${r.winnerName} walks away smiling.` : `${r.winnerName} overpaid. Nice read.`}</p>`;
     }
-    const brokeHtml = r.broke ? `<p><b style="color:#b4321f">You're out of cash.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : '';
+    const brokeHtml = !r.broke ? '' : r.canBailout ? `<p><b style="color:#b4321f">You're out of play credits.</b> Big Dave offers a ${fmt(BAILOUT_AMOUNT)} "loan" to keep you in the game. No interest. Probably.</p>` : `<p><b style="color:#b4321f">Your balance can't cover the smallest opening bid.</b></p>`;
     card.className = 'card receipt';
     card.innerHTML = `<div class="rc-head"><span>Lot receipt</span><em>Locker #${this.lockerNo}</em></div>
       <div class="rc-body">
@@ -280,11 +320,11 @@ export class HUD {
         <div class="lines">${lines}</div>
         ${note}${bestHtml}${quipHtml}${brokeHtml}
       </div>
-      <div class="actions">${r.broke ? '<button class="btn gold bail">Take the loan</button>' : `<button class="btn primary next">Next locker ${icon('chevron', 18)}</button>`}<button class="btn sq stats" title="Stats">${icon('stats')}</button><button class="btn sq to-menu" title="Main menu">${icon('home')}</button></div>`;
+      <div class="actions">${r.broke && r.canBailout ? '<button class="btn gold bail">Take the loan</button>' : `<button class="btn primary next">Next locker ${icon('chevron', 18)}</button>`}<button class="btn sq stats" title="Stats">${icon('stats')}</button><button class="btn sq to-menu" title="Main menu">${icon('home')}</button></div>`;
     card.querySelector('.next')?.addEventListener('click', () => { this.resultModal.classList.remove('show'); this.onNext(); });
     card.querySelector('.bail')?.addEventListener('click', () => { this.resultModal.classList.remove('show'); this.onBailout(); });
     card.querySelector('.stats')!.addEventListener('click', () => this.showStats(this.onOpenStats()));
-    card.querySelector('.to-menu')!.addEventListener('click', () => { if (r.broke) return this.toast('Take the loan first'); this.resultModal.classList.remove('show'); this.onMenu(); });
+    card.querySelector('.to-menu')!.addEventListener('click', () => { if (r.broke && r.canBailout) return this.toast('Take the loan first'); this.resultModal.classList.remove('show'); this.onMenu(); });
     this.resultModal.classList.add('show');
   }
 
@@ -302,6 +342,7 @@ export class HUD {
       <div class="menu-cta">
         <button class="btn primary hero start" ${this.menuLoading !== null ? 'disabled' : ''}>${icon('play', 20)} <span class="start-label">${this.menuLoading !== null ? 'Loading the crowd…' : returning ? 'Back to the lot' : 'Start bidding'}</span></button>
         <div class="load-bar" ${this.menuLoading === null ? 'hidden' : ''}><i style="transform:scaleX(${this.menuLoading ?? 0})"></i></div>
+        ${this.mathInfo.error ? `<p class="menu-error">${this.mathInfo.error}</p>` : ''}
         <div class="meta"><span>Bankroll</span><b>${fmt(stats.balance)}</b><span>Next</span><b>Locker #${stats.round + 1}</b></div>
       </div>
       <div class="menu-side">
@@ -314,7 +355,7 @@ export class HUD {
         </div></div>
       </div>
       <div class="menu-foot">
-        <span class="tiny">Every locker is an independent ${Math.round(TARGET_RTP * 100)}% RTP bet.</span>
+        <span class="tiny">${this.mathInfo.error ? '' : this.mathInfo.mode === 'platform' ? 'Every raise is settled by the Rollerz platform.' : '<b class="practice-tag">Practice credits</b> Settled in this browser, not the platform.'}</span>
         <button class="ibtn m-stats" title="Stats">${icon('stats')}</button>
         <button class="ibtn m-sound" title="Sound">${icon(this.soundOn ? 'soundOn' : 'soundOff')}</button>
         <button class="ibtn m-voice" title="Voices">${icon(this.voiceOn ? 'voiceOn' : 'voiceOff')}</button>
@@ -335,8 +376,8 @@ export class HUD {
     this.menuLoading = p;
     const btn = this.menu.querySelector('.start') as HTMLButtonElement | null;
     if (!btn) return;
-    btn.disabled = p !== null;
-    (btn.querySelector('.start-label') as HTMLElement).textContent = p !== null ? 'Loading the crowd…' : readyLabel;
+    btn.disabled = p !== null || !!this.mathInfo.error;
+    (btn.querySelector('.start-label') as HTMLElement).textContent = p !== null ? 'Loading the crowd…' : this.mathInfo.error ? 'Unavailable' : readyLabel;
     const bar = this.menu.querySelector('.load-bar') as HTMLElement;
     bar.hidden = p === null;
     if (p !== null) (bar.firstElementChild as HTMLElement).style.transform = `scaleX(${p})`;
@@ -348,6 +389,7 @@ export class HUD {
     const card = this.statsModal.querySelector('.card')!;
     const render = (tab: string) => {
       const rtp = realizedRTP(s);
+      const target = this.mathInfo.rtp;
       const net = s.balance - START_BALANCE;
       let body = '';
       if (tab === 'overview') {
@@ -368,11 +410,11 @@ export class HUD {
         <h2>Bankroll</h2>${sparkline(s.balanceHistory)}
         <h2>Fairness</h2>
         <div class="bars">
-          <div class="bar"><span>Theoretical RTP</span><div class="track"><i style="width:${TARGET_RTP * 100 / 1.2}%"></i></div><span class="v">${(TARGET_RTP * 100).toFixed(0)}%</span></div>
-          <div class="bar"><span>Your realised RTP</span><div class="track"><i class="${rtp !== null && rtp >= TARGET_RTP ? 'good' : ''}" style="width:${Math.min(100, (rtp ?? 0) * 100 / 1.2)}%"></i></div><span class="v">${rtp === null ? '—' : (rtp * 100).toFixed(1) + '%'}</span></div>
-          <div class="bar"><span>Spent / earned</span><div class="track"></div><span class="v">${fmt(s.totalSpent)} / ${fmt(s.totalEarned)}</span></div>
+          ${target !== null ? `<div class="bar"><span>Locker return</span><div class="track"><i style="width:${target * 100 / 1.2}%"></i></div><span class="v">${(target * 100).toFixed(0)}%</span></div>` : ''}
+          <div class="bar"><span>Your realised return</span><div class="track"><i class="${rtp !== null && target !== null && rtp >= target ? 'good' : ''}" style="width:${Math.min(100, (rtp ?? 0) * 100 / 1.2)}%"></i></div><span class="v">${rtp === null ? '—' : (rtp * 100).toFixed(1) + '%'}</span></div>
+          <div class="bar"><span>Paid / contents</span><div class="track"></div><span class="v">${fmt(s.totalSpent)} / ${fmt(s.totalEarned)}</span></div>
         </div>
-        <p class="fairness">Every locker you win is an independent bet. The payout multiplier is drawn before the auction starts, from a distribution with a ${Math.round(TARGET_RTP * 100)}% average return: about ${Math.round(hitRate() * 100)}% of won lockers pay out more than you paid, and the busts pay for it. Nothing you see from the door, and nothing the rivals do, changes it.</p>`;
+        <p class="fairness">${this.mathInfo.mode === 'platform' ? 'Every raise is a bet placed with the Rollerz platform, which draws every result on its servers.' : 'Practice mode: play credits, with results drawn in this browser using the same rules as the platform.'} Each raise either gets outbid, and your bid comes back in full, or wins the locker. The rivals thin out as the price climbs, so the higher you go the less likely you are to be outbid. A won locker's contents are a one-shot draw${target !== null ? ` averaging ${Math.round(target * 100)}% of the price you paid` : ''}. Being outbid costs nothing; the edge is only in lockers you win. The rivals, their bids and the auctioneer are theatre around those results.</p>`;
       } else if (tab === 'items') {
         const cats = (Object.entries(s.byCategory) as [Category, { items: number; value: number; lockers: number; replicas: number }][]).sort((a, b) => b[1].value - a[1].value);
         const maxV = Math.max(1, ...cats.map((c) => c[1].value));
